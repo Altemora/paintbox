@@ -57,6 +57,13 @@ class _EditorPageState extends State<EditorPage> with WindowListener {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    injector<FileDialogService>().allImagesLabel = AppLocalizations.of(context)
+        .fileTypeImages;
+  }
+
+  @override
   void dispose() {
     if (widget.manageWindow) {
       windowManager.removeListener(this);

@@ -81,7 +81,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unitsPixels => 'px';
 
   @override
-  String get themeSystem => 'As the system';
+  String get themeSystem => 'System default';
 
   @override
   String get themeDark => 'Dark';
@@ -123,7 +123,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'flip_horizontal': 'Flip Horizontal',
       'flip_vertical': 'Flip Vertical',
       'rotate90_cw': 'Rotate 90° Clockwise',
-      'rotate90_ccw': 'Rotate 90° Counter-clockwise',
+      'rotate90_ccw': 'Rotate 90° Counterclockwise',
       'rotate180': 'Rotate 180°',
       'flatten': 'Flatten',
       'add_layer': 'Add New Layer',
@@ -131,8 +131,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'duplicate_layer': 'Duplicate Layer',
       'merge_layer_down': 'Merge Layer Down',
       'import_from_file': 'Import From File…',
-      'flip_layer_horizontal': 'Flip Horizontal',
-      'flip_layer_vertical': 'Flip Vertical',
+      'flip_layer_horizontal': 'Flip Layer Horizontal',
+      'flip_layer_vertical': 'Flip Layer Vertical',
       'move_layer_up': 'Move Layer Up',
       'move_layer_down': 'Move Layer Down',
       'layer_properties': 'Layer Properties…',
@@ -145,7 +145,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'adjust_levels': 'Levels…',
       'adjust_posterize': 'Posterize…',
       'adjust_sepia': 'Sepia',
-      'repeat_effect': 'Repeat',
+      'repeat_effect': 'Repeat Effect',
       'effect_oil_painting': 'Oil Painting…',
       'effect_gaussian_blur': 'Gaussian Blur…',
       'effect_motion_blur': 'Motion Blur…',
@@ -162,7 +162,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'toggle_colors': 'Colors',
       'next_image': 'Next Image',
       'previous_image': 'Previous Image',
-      'help': 'Help Topics',
+      'help': 'Help',
       'effect_ink_sketch': 'Ink Sketch…',
       'effect_pencil_sketch': 'Pencil Sketch…',
       'effect_fragment': 'Fragment…',
@@ -184,51 +184,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'effect_julia_fractal': 'Julia Fractal…',
       'effect_mandelbrot_fractal': 'Mandelbrot Fractal…',
       'effect_relief': 'Relief…',
-      'other': '',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String dialogTitle(String id) {
-    String _temp0 = intl.Intl.selectLogic(id, {
-      'adjust_brightness_contrast': 'Brightness / Contrast',
-      'adjust_curves': 'Curves',
-      'adjust_hue_saturation': 'Hue / Saturation',
-      'adjust_levels': 'Levels',
-      'adjust_posterize': 'Posterize',
-      'effect_oil_painting': 'Oil Painting',
-      'effect_gaussian_blur': 'Gaussian Blur',
-      'effect_motion_blur': 'Motion Blur',
-      'effect_pixelate': 'Pixelate',
-      'effect_add_noise': 'Add Noise',
-      'effect_median': 'Median',
-      'effect_sharpen': 'Sharpen',
-      'effect_edge_detect': 'Edge Detect',
-      'effect_emboss': 'Emboss',
-      'effect_outline': 'Outline',
-      'layer_properties': 'Layer Properties',
-      'effect_ink_sketch': 'Ink Sketch',
-      'effect_pencil_sketch': 'Pencil Sketch',
-      'effect_fragment': 'Fragment',
-      'effect_radial_blur': 'Radial Blur',
-      'effect_surface_blur': 'Surface Blur',
-      'effect_unfocus': 'Unfocus',
-      'effect_zoom_blur': 'Zoom Blur',
-      'effect_bulge': 'Bulge',
-      'effect_dents': 'Dents',
-      'effect_frosted_glass': 'Frosted Glass',
-      'effect_polar_inversion': 'Polar Inversion',
-      'effect_tile_reflection': 'Tile Reflection',
-      'effect_twist': 'Twist',
-      'effect_reduce_noise': 'Reduce Noise',
-      'effect_glow': 'Glow',
-      'effect_red_eye_removal': 'Red Eye Removal',
-      'effect_soften_portrait': 'Soften Portrait',
-      'effect_clouds': 'Clouds',
-      'effect_julia_fractal': 'Julia Fractal',
-      'effect_mandelbrot_fractal': 'Mandelbrot Fractal',
-      'effect_relief': 'Relief',
       'other': '',
     });
     return '$_temp0';
@@ -282,30 +237,32 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String toolHint(String id) {
     String _temp0 = intl.Intl.selectLogic(id, {
-      'rectangle_select': 'Drag to select a rectangle. Shift makes a square.',
-      'move_selected_pixels': 'Drag the selection to move it: the right button turns it, the handles scale it. Ctrl leaves a copy, the arrow keys nudge.',
+      'rectangle_select':
+          'Drag to select a rectangle. Hold Shift for a square.',
+      'move_selected_pixels': 'Drag the selection to move it. Drag with the right button to rotate it, drag the handles to scale it. Ctrl leaves a copy; the arrow keys nudge it.',
       'lasso_select': 'Drag to draw the outline of a selection.',
-      'move_selection': 'Drag the selection outline. The pixels stay.',
-      'ellipse_select': 'Drag to select an ellipse. Shift makes a circle.',
-      'zoom': 'Left click zooms in, right click zooms out, a drawn box zooms to it.',
-      'magic_wand': 'Click to select an area of similar colour. Shift selects over the whole image.',
+      'move_selection':
+          'Drag the selection outline to move it. The pixels stay in place.',
+      'ellipse_select': 'Drag to select an ellipse. Hold Shift for a circle.',
+      'zoom': 'Left-click to zoom in, right-click to zoom out, or drag a box to zoom to it.',
+      'magic_wand': 'Click a color to select the area around it. Hold Shift to select it across the image.',
       'pan': 'Drag to move the view.',
-      'paint_bucket': 'Left click fills with the primary colour, right click with the secondary.',
-      'gradient':
-          'Drag to draw a gradient. The handles change it, Enter finishes.',
-      'paintbrush': 'The left button paints with the primary colour, the right with the secondary.',
+      'paint_bucket': 'Left-click fills with the primary color, right-click with the secondary.',
+      'gradient': 'Drag to draw a gradient. Drag the handles to adjust it; press Enter to finish.',
+      'paintbrush': 'The left button paints with the primary color, the right button with the secondary.',
       'eraser': 'Drag to erase to transparency.',
       'pencil': 'Draws one-pixel lines without antialiasing.',
       'color_picker':
-          'Left click picks the primary colour, right click the secondary.',
-      'clone_stamp': 'Ctrl+click sets the source, then drag to paint from it.',
-      'recolor': 'Replaces the secondary colour with the primary where you paint. Ctrl+click picks.',
-      'text': 'Click to place the cursor, then type. The right button or the handle moves the text, Esc finishes.',
-      'line_curve': 'Drag to draw a line. The handles bend it, Enter finishes.',
-      'rectangle': 'Drag to draw a rectangle. Shift makes a square.',
+          'Left-click picks the primary color, right-click the secondary.',
+      'clone_stamp':
+          'Ctrl+click to set the source, then drag to paint from it.',
+      'recolor': 'Replaces the secondary color with the primary where you paint. Ctrl+click picks a color.',
+      'text': 'Click to place the cursor, then type. Drag the handle or drag with the right button to move the text; press Esc to finish.',
+      'line_curve': 'Drag to draw a line. Drag the handles to bend it; press Enter to finish.',
+      'rectangle': 'Drag to draw a rectangle. Hold Shift for a square.',
       'rounded_rectangle':
-          'Drag to draw a rounded rectangle. Shift makes a square.',
-      'ellipse': 'Drag to draw an ellipse. Shift makes a circle.',
+          'Drag to draw a rounded rectangle. Hold Shift for a square.',
+      'ellipse': 'Drag to draw an ellipse. Hold Shift for a circle.',
       'freeform_shape': 'Drag to draw a closed freeform shape.',
       'other': '',
     });
@@ -403,21 +360,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String failureCode(String code) {
     String _temp0 = intl.Intl.selectLogic(code, {
       'out_of_memory': 'There is not enough memory for the image.',
-      'invalid_size': 'An image cannot have this size.',
+      'invalid_size': 'The image size is not valid.',
       'layer_index': 'There is no such layer.',
       'last_layer': 'The last layer cannot be deleted.',
       'no_layer_below': 'There is no layer below to merge into.',
       'edit_in_progress': 'Finish what is in progress first.',
-      'no_edit': 'There is nothing to finish.',
+      'no_edit': 'There is nothing in progress to finish.',
       'no_selection': 'Nothing is selected.',
-      'nothing_lifted': 'Nothing is lifted.',
+      'nothing_lifted': 'No pixels are lifted.',
       'invalid_parameter': 'The value is out of range.',
       'io': 'The file could not be read or written.',
       'decode': 'The image could not be read.',
       'encode': 'The image could not be written.',
       'open_raster': 'The OpenRaster file is damaged.',
       'palette': 'The palette file is damaged.',
-      'cancelled': 'The render was cancelled.',
+      'cancelled': 'The calculation was cancelled.',
       'other': 'Something went wrong.',
     });
     return '$_temp0';
@@ -455,17 +412,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get colorsPrimaryHint =>
-      'The primary colour: the left button paints with it';
+      'Primary color: the left mouse button paints with it';
 
   @override
   String get colorsSecondaryHint =>
-      'The secondary colour: the right button paints with it';
+      'Secondary color: the right mouse button paints with it';
 
   @override
-  String get colorsSwap => 'Swap colours (X)';
+  String get colorsSwap => 'Swap colors (X)';
 
   @override
-  String get colorsReset => 'Black and white';
+  String get colorsReset => 'Reset to black and white';
 
   @override
   String get colorsMore => 'More';
@@ -499,7 +456,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get colorsPaletteHint =>
-      'Left button: the primary colour, right: the secondary';
+      'Left-click sets the primary color, right-click the secondary';
 
   @override
   String get settingWidth => 'Width';
@@ -542,7 +499,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingDrawMode => 'Draw mode';
+  String get settingDrawMode => 'Selection size';
 
   @override
   String get drawNormal => 'Normal';
@@ -585,7 +542,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gradientTransparency => 'Transparency';
 
   @override
-  String get settingShape => 'Draws';
+  String get settingShape => 'Shape style';
 
   @override
   String get shapeOutline => 'Outline';
@@ -597,27 +554,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shapeBoth => 'Outline and fill';
 
   @override
-  String get settingAfterPick => 'After click';
+  String get settingAfterPick => 'After picking';
 
   @override
-  String get pickStay => 'Do not switch';
+  String get pickStay => 'Keep this tool';
 
   @override
-  String get pickPrevious => 'Previous tool';
+  String get pickPrevious => 'Switch to the previous tool';
 
   @override
-  String get pickPencil => 'Pencil';
+  String get pickPencil => 'Switch to the Pencil';
 
   @override
   String get settingNone => 'This tool has no settings.';
 
   @override
   String toolUnavailable(String name) {
-    return '$name is not made yet';
+    return '$name is not available yet';
   }
 
   @override
-  String get historyFirst => 'To the start';
+  String get historyFirst => 'Go to the first step';
 
   @override
   String get historyUndo => 'Undo';
@@ -626,7 +583,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyRedo => 'Redo';
 
   @override
-  String get historyLast => 'To the end';
+  String get historyLast => 'Go to the last step';
 
   @override
   String get historyNewImage => 'New Image';
@@ -635,7 +592,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyOpenImage => 'Open Image';
 
   @override
-  String get layerVisible => 'Whether the layer shows';
+  String get layerVisible => 'Show or hide the layer';
 
   @override
   String get layerBackground => 'Background';
@@ -693,7 +650,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sizeTooLarge(int max) {
-    return 'The image is too large: at most $max megapixels.';
+    return 'The image is too large: the limit is $max megapixels.';
   }
 
   @override
@@ -709,7 +666,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String flattenMessage(String format) {
-    return '$format keeps no layers: the image will be flattened into one. History can undo it.';
+    return 'The $format format does not keep layers, so the image will be flattened into one layer. You can undo this in the History window.';
   }
 
   @override
@@ -764,7 +721,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dropHere => 'Open';
+  String get dropHere => 'Drop to open';
 
   @override
   String get dropHint => 'Each file opens as a new image';
@@ -777,7 +734,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpMessage =>
-      'An image editor with layers. Tools by letter (S, M, O cycle their neighbours), [ and ] the brush width, X swaps the colours, Space pans, Ctrl+wheel zooms, F5–F8 the windows.';
+      'A raster image editor with layers. Press a letter to choose a tool; pressing S, M or O again cycles through the related tools. [ and ] change the brush width, X swaps the colors, holding Space pans the view, Ctrl+mouse wheel zooms, and F5–F8 show or hide the windows.';
 
   @override
   String get settingLineStart => 'Start';
@@ -847,4 +804,7 @@ class AppLocalizationsEn extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String get fileTypeImages => 'Images';
 }

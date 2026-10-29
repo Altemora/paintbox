@@ -16,6 +16,9 @@ import 'bridge_loader.dart';
 
 class _NoFiles implements FileDialogService {
   @override
+  String allImagesLabel = 'Images';
+
+  @override
   Future<List<String>> openImages({String? directory}) async => const [];
 
   @override
@@ -274,7 +277,9 @@ void main() {
     EditorReady state() => bloc.state as EditorReady;
     final red = state().palette[2];
     final swatch = find.byType(Draggable<Rgba8>).at(2);
-    final target = find.byTooltip('Додатковий колір: ним малює права кнопка');
+    final target = find.byTooltip(
+      'Додатковий колір: ним малює права кнопка миші',
+    );
     final from = tester.getCenter(swatch);
     await dragBy(tester, from, tester.getCenter(target) - from);
     expect(state().colors.secondary, red);

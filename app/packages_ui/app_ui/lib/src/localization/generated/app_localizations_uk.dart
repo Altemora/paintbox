@@ -39,7 +39,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get menuEffects => 'Ефекти';
 
   @override
-  String get menuOpenRecent => 'Нещодавні';
+  String get menuOpenRecent => 'Нещодавні файли';
 
   @override
   String get menuRecentEmpty => 'Нещодавніх файлів немає';
@@ -107,7 +107,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'paste_into_new_image': 'Вставити в нове зображення',
       'erase_selection': 'Стерти виділене',
       'fill_selection': 'Залити виділене',
-      'invert_selection': 'Обернути виділення',
+      'invert_selection': 'Інвертувати виділення',
       'select_all': 'Виділити все',
       'deselect': 'Зняти виділення',
       'zoom_in': 'Наблизити',
@@ -118,30 +118,30 @@ class AppLocalizationsUk extends AppLocalizations {
       'pixel_grid': 'Піксельна сітка',
       'rulers': 'Лінійки',
       'crop_to_selection': 'Обрізати за виділенням',
-      'resize': 'Змінити розмір…',
-      'canvas_size': 'Розмір полотна…',
+      'resize': 'Змінити розмір зображення…',
+      'canvas_size': 'Змінити розмір полотна…',
       'flip_horizontal': 'Віддзеркалити по горизонталі',
       'flip_vertical': 'Віддзеркалити по вертикалі',
-      'rotate90_cw': 'Повернути на 90° за годинниковою',
-      'rotate90_ccw': 'Повернути на 90° проти годинникової',
+      'rotate90_cw': 'Повернути на 90° за годинниковою стрілкою',
+      'rotate90_ccw': 'Повернути на 90° проти годинникової стрілки',
       'rotate180': 'Повернути на 180°',
       'flatten': 'Звести шари',
       'add_layer': 'Додати шар',
       'delete_layer': 'Видалити шар',
       'duplicate_layer': 'Дублювати шар',
-      'merge_layer_down': 'Злити з нижнім',
+      'merge_layer_down': 'Об\'єднати з нижнім шаром',
       'import_from_file': 'Імпортувати з файлу…',
       'flip_layer_horizontal': 'Віддзеркалити шар по горизонталі',
       'flip_layer_vertical': 'Віддзеркалити шар по вертикалі',
       'move_layer_up': 'Підняти шар',
       'move_layer_down': 'Опустити шар',
       'layer_properties': 'Властивості шару…',
-      'adjust_auto_level': 'Авторівні',
+      'adjust_auto_level': 'Автоматичні рівні',
       'adjust_black_and_white': 'Чорно-біле',
       'adjust_brightness_contrast': 'Яскравість / контраст…',
       'adjust_curves': 'Криві…',
       'adjust_hue_saturation': 'Відтінок / насиченість…',
-      'adjust_invert_colors': 'Обернути кольори',
+      'adjust_invert_colors': 'Інвертувати кольори',
       'adjust_levels': 'Рівні…',
       'adjust_posterize': 'Постеризація…',
       'adjust_sepia': 'Сепія',
@@ -150,7 +150,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'effect_gaussian_blur': 'Розмиття Гаусса…',
       'effect_motion_blur': 'Розмиття в русі…',
       'effect_pixelate': 'Пікселізація…',
-      'effect_add_noise': 'Шум…',
+      'effect_add_noise': 'Додавання шуму…',
       'effect_median': 'Медіана…',
       'effect_sharpen': 'Різкість…',
       'effect_edge_detect': 'Виявлення країв…',
@@ -165,10 +165,10 @@ class AppLocalizationsUk extends AppLocalizations {
       'help': 'Довідка',
       'effect_ink_sketch': 'Ескіз тушшю…',
       'effect_pencil_sketch': 'Олівцевий ескіз…',
-      'effect_fragment': 'Фрагменти…',
+      'effect_fragment': 'Фрагментація…',
       'effect_radial_blur': 'Радіальне розмиття…',
       'effect_surface_blur': 'Розмиття поверхні…',
-      'effect_unfocus': 'Розфокус…',
+      'effect_unfocus': 'Розфокусування…',
       'effect_zoom_blur': 'Розмиття наближенням…',
       'effect_bulge': 'Опуклість…',
       'effect_dents': 'Вм\'ятини…',
@@ -190,54 +190,9 @@ class AppLocalizationsUk extends AppLocalizations {
   }
 
   @override
-  String dialogTitle(String id) {
-    String _temp0 = intl.Intl.selectLogic(id, {
-      'adjust_brightness_contrast': 'Яскравість / контраст',
-      'adjust_curves': 'Криві',
-      'adjust_hue_saturation': 'Відтінок / насиченість',
-      'adjust_levels': 'Рівні',
-      'adjust_posterize': 'Постеризація',
-      'effect_oil_painting': 'Олійний живопис',
-      'effect_gaussian_blur': 'Розмиття Гаусса',
-      'effect_motion_blur': 'Розмиття в русі',
-      'effect_pixelate': 'Пікселізація',
-      'effect_add_noise': 'Шум',
-      'effect_median': 'Медіана',
-      'effect_sharpen': 'Різкість',
-      'effect_edge_detect': 'Виявлення країв',
-      'effect_emboss': 'Тиснення',
-      'effect_outline': 'Контур',
-      'layer_properties': 'Властивості шару',
-      'effect_ink_sketch': 'Ескіз тушшю',
-      'effect_pencil_sketch': 'Олівцевий ескіз',
-      'effect_fragment': 'Фрагменти',
-      'effect_radial_blur': 'Радіальне розмиття',
-      'effect_surface_blur': 'Розмиття поверхні',
-      'effect_unfocus': 'Розфокус',
-      'effect_zoom_blur': 'Розмиття наближенням',
-      'effect_bulge': 'Опуклість',
-      'effect_dents': 'Вм\'ятини',
-      'effect_frosted_glass': 'Матове скло',
-      'effect_polar_inversion': 'Полярна інверсія',
-      'effect_tile_reflection': 'Відбиття плиток',
-      'effect_twist': 'Скручування',
-      'effect_reduce_noise': 'Зменшення шуму',
-      'effect_glow': 'Сяйво',
-      'effect_red_eye_removal': 'Усунення червоних очей',
-      'effect_soften_portrait': 'М\'який портрет',
-      'effect_clouds': 'Хмари',
-      'effect_julia_fractal': 'Фрактал Жюліа',
-      'effect_mandelbrot_fractal': 'Фрактал Мандельброта',
-      'effect_relief': 'Рельєф',
-      'other': '',
-    });
-    return '$_temp0';
-  }
-
-  @override
   String effectGroup(String name) {
     String _temp0 = intl.Intl.selectLogic(name, {
-      'artistic': 'Мистецькі',
+      'artistic': 'Художні',
       'blurs': 'Розмиття',
       'distort': 'Спотворення',
       'noise': 'Шум',
@@ -283,14 +238,14 @@ class AppLocalizationsUk extends AppLocalizations {
   String toolHint(String id) {
     String _temp0 = intl.Intl.selectLogic(id, {
       'rectangle_select':
-          'Протягніть, щоб виділити прямокутник. Shift — квадрат.',
-      'move_selected_pixels': 'Перетягніть виділене, щоб перемістити: права кнопка повертає, ручки масштабують. Ctrl лишає копію, стрілки зсувають.',
+          'Протягніть, щоб виділити прямокутник. Shift дає квадрат.',
+      'move_selected_pixels': 'Перетягніть виділене, щоб перемістити. Протяжка правою кнопкою повертає, ручки масштабують. Ctrl лишає копію, стрілки зсувають.',
       'lasso_select': 'Протягніть, щоб обвести виділення.',
       'move_selection':
           'Перетягніть контур виділення. Пікселі лишаються на місці.',
-      'ellipse_select': 'Протягніть, щоб виділити еліпс. Shift — коло.',
-      'zoom': 'Ліве клацання наближає, праве віддаляє, рамка наближає до себе.',
-      'magic_wand': 'Клацніть, щоб виділити ділянку схожого кольору. Shift — по всьому зображенню.',
+      'ellipse_select': 'Протягніть, щоб виділити еліпс. Shift дає коло.',
+      'zoom': 'Ліве клацання наближає, праве віддаляє, рамка наближає до виділеної ділянки.',
+      'magic_wand': 'Клацніть колір, щоб виділити ділянку навколо нього. Shift виділяє його по всьому зображенню.',
       'pan': 'Перетягніть, щоб зсунути вигляд.',
       'paint_bucket':
           'Ліве клацання заливає основним кольором, праве — додатковим.',
@@ -301,12 +256,12 @@ class AppLocalizationsUk extends AppLocalizations {
       'color_picker': 'Ліве клацання бере основний колір, праве — додатковий.',
       'clone_stamp':
           'Ctrl+клацання задає джерело, далі протягніть, щоб малювати з нього.',
-      'recolor': 'Замінює додатковий колір основним там, де малюєте. Ctrl+клацання бере колір.',
-      'text': 'Клацніть, щоб поставити курсор, і друкуйте. Права кнопка чи ручка рухають текст, Esc завершує.',
+      'recolor': 'Замінює додатковий колір основним там, де ви малюєте. Ctrl+клацання бере колір.',
+      'text': 'Клацніть, щоб поставити курсор, і друкуйте. Ручка чи протяжка правою кнопкою рухає текст, Esc завершує.',
       'line_curve': 'Протягніть, щоб намалювати лінію. Ручки її вигинають, Enter завершує.',
-      'rectangle': 'Протягніть, щоб намалювати прямокутник. Shift — квадрат.',
-      'rounded_rectangle': 'Протягніть, щоб намалювати заокруглений прямокутник. Shift — квадрат.',
-      'ellipse': 'Протягніть, щоб намалювати еліпс. Shift — коло.',
+      'rectangle': 'Протягніть, щоб намалювати прямокутник. Shift дає квадрат.',
+      'rounded_rectangle': 'Протягніть, щоб намалювати заокруглений прямокутник. Shift дає квадрат.',
+      'ellipse': 'Протягніть, щоб намалювати еліпс. Shift дає коло.',
       'freeform_shape': 'Протягніть, щоб намалювати замкнену довільну фігуру.',
       'other': '',
     });
@@ -319,7 +274,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'radius': 'Радіус',
       'angle': 'Кут',
       'distance': 'Відстань',
-      'centered': 'По центру',
+      'centered': 'Від центру',
       'amount': 'Сила',
       'intensity': 'Інтенсивність',
       'saturation': 'Насиченість',
@@ -358,7 +313,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'tension': 'Натяг',
       'max_scatter': 'Найбільший розкид',
       'min_scatter': 'Найменший розкид',
-      'samples': 'Відліки',
+      'samples': 'Кількість вибірок',
       'edge_behavior': 'Поведінка на краю',
       'tile_size': 'Розмір плитки',
       'curvature': 'Кривизна',
@@ -372,7 +327,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'blend_mode': 'Режим змішування',
       'factor': 'Множник',
       'zoom': 'Наближення',
-      'invert_colors': 'Обернути кольори',
+      'invert_colors': 'Інвертувати кольори',
       'other': '',
     });
     return '$_temp0';
@@ -381,7 +336,7 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String blendModeName(String mode) {
     String _temp0 = intl.Intl.selectLogic(mode, {
-      'normal': 'Звичайне',
+      'normal': 'Звичайний',
       'multiply': 'Множення',
       'additive': 'Додавання',
       'colorBurn': 'Затемнення основи',
@@ -391,8 +346,8 @@ class AppLocalizationsUk extends AppLocalizations {
       'overlay': 'Перекриття',
       'difference': 'Різниця',
       'negation': 'Заперечення',
-      'lighten': 'Світліше',
-      'darken': 'Темніше',
+      'lighten': 'Заміна світлим',
+      'darken': 'Заміна темним',
       'screen': 'Екран',
       'xor': 'Виключне АБО',
       'other': '',
@@ -403,16 +358,16 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String failureCode(String code) {
     String _temp0 = intl.Intl.selectLogic(code, {
-      'out_of_memory': 'Для зображення забракло пам\'яті.',
-      'invalid_size': 'Такого розміру зображення бути не може.',
+      'out_of_memory': 'Бракує пам\'яті для зображення.',
+      'invalid_size': 'Неприпустимий розмір зображення.',
       'layer_index': 'Такого шару немає.',
       'last_layer': 'Останній шар видалити не можна.',
-      'no_layer_below': 'Під цим шаром немає шару, з яким злити.',
+      'no_layer_below': 'Під цим шаром немає шару для об\'єднання.',
       'edit_in_progress': 'Спершу завершіть поточну дію.',
-      'no_edit': 'Немає дії, яку завершити.',
+      'no_edit': 'Немає незавершеної дії.',
       'no_selection': 'Нічого не виділено.',
-      'nothing_lifted': 'Нічого не піднято.',
-      'invalid_parameter': 'Значення поза межами.',
+      'nothing_lifted': 'Немає піднятих пікселів.',
+      'invalid_parameter': 'Значення поза допустимими межами.',
       'io': 'Файл не вдалося прочитати чи записати.',
       'decode': 'Зображення не вдалося прочитати.',
       'encode': 'Зображення не вдалося записати.',
@@ -455,16 +410,17 @@ class AppLocalizationsUk extends AppLocalizations {
   String get colorsSecondary => 'Додатковий';
 
   @override
-  String get colorsPrimaryHint => 'Основний колір: ним малює ліва кнопка';
+  String get colorsPrimaryHint => 'Основний колір: ним малює ліва кнопка миші';
 
   @override
-  String get colorsSecondaryHint => 'Додатковий колір: ним малює права кнопка';
+  String get colorsSecondaryHint =>
+      'Додатковий колір: ним малює права кнопка миші';
 
   @override
-  String get colorsSwap => 'Обміняти кольори (X)';
+  String get colorsSwap => 'Поміняти кольори місцями (X)';
 
   @override
-  String get colorsReset => 'Чорний і білий';
+  String get colorsReset => 'Скинути до чорного й білого';
 
   @override
   String get colorsMore => 'Більше';
@@ -498,7 +454,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get colorsPaletteHint =>
-      'Ліва кнопка — основний колір, права — додатковий';
+      'Ліве клацання задає основний колір, праве — додатковий';
 
   @override
   String get settingWidth => 'Ширина';
@@ -510,7 +466,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get settingAntialias => 'Згладжування';
 
   @override
-  String get settingAlphaBlending => 'Змішування альфи';
+  String get settingAlphaBlending => 'Альфа-змішування';
 
   @override
   String get settingTolerance => 'Допуск';
@@ -541,7 +497,7 @@ class AppLocalizationsUk extends AppLocalizations {
   }
 
   @override
-  String get settingDrawMode => 'Розмір';
+  String get settingDrawMode => 'Розмір виділення';
 
   @override
   String get drawNormal => 'Довільний';
@@ -584,7 +540,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get gradientTransparency => 'Прозорість';
 
   @override
-  String get settingShape => 'Малює';
+  String get settingShape => 'Стиль фігури';
 
   @override
   String get shapeOutline => 'Контур';
@@ -596,27 +552,27 @@ class AppLocalizationsUk extends AppLocalizations {
   String get shapeBoth => 'Контур і заливка';
 
   @override
-  String get settingAfterPick => 'Потім';
+  String get settingAfterPick => 'Після вибору кольору';
 
   @override
-  String get pickStay => 'Лишитися';
+  String get pickStay => 'Лишити цей інструмент';
 
   @override
-  String get pickPrevious => 'Попередній інструмент';
+  String get pickPrevious => 'Перейти до попереднього інструмента';
 
   @override
-  String get pickPencil => 'Олівець';
+  String get pickPencil => 'Перейти до Олівця';
 
   @override
   String get settingNone => 'Цей інструмент не має параметрів.';
 
   @override
   String toolUnavailable(String name) {
-    return '$name ще не зроблено';
+    return 'Інструмент «$name» поки що недоступний';
   }
 
   @override
-  String get historyFirst => 'На початок';
+  String get historyFirst => 'До першого кроку';
 
   @override
   String get historyUndo => 'Скасувати';
@@ -625,7 +581,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get historyRedo => 'Повторити';
 
   @override
-  String get historyLast => 'У кінець';
+  String get historyLast => 'До останнього кроку';
 
   @override
   String get historyNewImage => 'Нове зображення';
@@ -634,7 +590,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get historyOpenImage => 'Відкрите зображення';
 
   @override
-  String get layerVisible => 'Чи показано шар';
+  String get layerVisible => 'Показати чи сховати шар';
 
   @override
   String get layerBackground => 'Тло';
@@ -661,7 +617,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get dontSave => 'Не зберігати';
 
   @override
-  String get keepCanvas => 'Не змінювати';
+  String get keepCanvas => 'Лишити полотно';
 
   @override
   String get expandCanvas => 'Збільшити полотно';
@@ -692,7 +648,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String sizeTooLarge(int max) {
-    return 'Завелике зображення: не більше $max мегапікселів.';
+    return 'Зображення завелике: найбільший розмір — $max мегапікселів.';
   }
 
   @override
@@ -708,7 +664,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String flattenMessage(String format) {
-    return 'Формат $format не зберігає шарів: зображення буде зведено в один шар. Скасувати це можна в Історії.';
+    return 'Формат $format не підтримує шари, тому зображення буде зведено в один шар. Цю дію можна скасувати у вікні «Історія».';
   }
 
   @override
@@ -724,10 +680,10 @@ class AppLocalizationsUk extends AppLocalizations {
   String get largerTitle => 'Зображення більше за полотно';
 
   @override
-  String get largerMessage => 'Збільшити полотно, щоб вмістити його?';
+  String get largerMessage => 'Збільшити полотно, щоб вмістити зображення?';
 
   @override
-  String get reseed => 'Інше зерно';
+  String get reseed => 'Нове зерно';
 
   @override
   String get rendering => 'Обчислення…';
@@ -763,10 +719,10 @@ class AppLocalizationsUk extends AppLocalizations {
   }
 
   @override
-  String get dropHere => 'Відкрити';
+  String get dropHere => 'Відпустіть, щоб відкрити';
 
   @override
-  String get dropHint => 'Кожен файл відкриється новим зображенням';
+  String get dropHint => 'Кожен файл відкриється як нове зображення';
 
   @override
   String get imagesList => 'Відкриті зображення';
@@ -776,7 +732,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get helpMessage =>
-      'Редактор зображень із шарами. Інструменти — літерами (S, M, O перебирають сусідні), [ і ] — ширина пензля, X — обміняти кольори, пробіл — рука, Ctrl+коліщатко — масштаб, F5–F8 — вікна.';
+      'Редактор растрових зображень із шарами. Інструмент вибирають літерою; повторне натискання S, M чи O перемикає споріднені інструменти. [ і ] змінюють ширину пензля, X міняє кольори місцями, утримуваний пробіл зсуває вигляд, Ctrl+коліщатко миші змінює масштаб, а F5–F8 показують і ховають вікна.';
 
   @override
   String get settingLineStart => 'Початок';
@@ -839,11 +795,14 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String textAlign(String align) {
     String _temp0 = intl.Intl.selectLogic(align, {
-      'left': 'Ліворуч',
+      'left': 'За лівим краєм',
       'center': 'По центру',
-      'right': 'Праворуч',
+      'right': 'За правим краєм',
       'other': '',
     });
     return '$_temp0';
   }
+
+  @override
+  String get fileTypeImages => 'Зображення';
 }

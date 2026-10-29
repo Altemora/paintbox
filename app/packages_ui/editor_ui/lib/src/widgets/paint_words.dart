@@ -17,10 +17,8 @@ extension PaintWords on AppLocalizations {
     return PaintCatalog.commands[id]?.label.replaceAll('...', '…') ?? id;
   }
 
-  String dialog(String id) {
-    final text = dialogTitle(_key(id));
-    return text.isNotEmpty ? text : command(id).replaceAll('…', '');
-  }
+  /// A dialog's title: its command's label without the ellipsis.
+  String dialog(String id) => command(id).replaceAll('…', '');
 
   String tool(Tool tool) {
     final text = toolName(PaintCatalog.toolId(tool));

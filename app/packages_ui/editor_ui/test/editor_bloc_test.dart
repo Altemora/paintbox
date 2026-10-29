@@ -11,6 +11,9 @@ import 'package:path/path.dart' as p;
 import 'bridge_loader.dart';
 
 class _FakeFiles implements FileDialogService {
+  @override
+  String allImagesLabel = 'Images';
+
   String? saveAs;
   List<String> open = const [];
 

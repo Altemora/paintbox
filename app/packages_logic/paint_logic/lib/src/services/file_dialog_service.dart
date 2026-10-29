@@ -4,6 +4,10 @@ import 'package:paint_bridge/paint_bridge.dart';
 /// The system's open and save dialogs for the formats the core reads and
 /// writes.
 abstract class FileDialogService {
+  /// The name of the type that takes every image format, in the
+  /// interface's language; the window sets it.
+  abstract String allImagesLabel;
+
   /// File > Open: any number of images.
   Future<List<String>> openImages({String? directory});
 
@@ -15,10 +19,13 @@ abstract class FileDialogService {
 }
 
 class SystemFileDialogService implements FileDialogService {
-  static List<XTypeGroup> _groups() {
+  @override
+  String allImagesLabel = 'Images';
+
+  List<XTypeGroup> _groups() {
     final extensions = fileExtensions();
     return [
-      XTypeGroup(label: 'Images', extensions: extensions),
+      XTypeGroup(label: allImagesLabel, extensions: extensions),
       for (final e in extensions)
         XTypeGroup(label: e.toUpperCase(), extensions: [e]),
     ];
