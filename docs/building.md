@@ -22,7 +22,9 @@ flutter build windows --release
 
 The release build is `app/build/windows/x64/runner/Release/paintbox.exe`
 with `paintbox_bridge.dll` next to it. Command-line arguments are files
-to open.
+to open. `tools/make-shortcut.ps1` puts a shortcut to that build into
+the Start menu (`-Desktop` adds one on the desktop), so the program is
+at hand without an install and current after every release build.
 
 The generated code is committed, so a plain build needs neither code
 generator: the bridge bindings (`lib/src/rust` and
