@@ -33,6 +33,7 @@ UninstallDisplayIcon={app}\paintbox.exe
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+LicenseFile=..\..\LICENSE
 ChangesAssociations=yes
 
 [Languages]
@@ -46,6 +47,10 @@ Name: "openraster"; Description: "OpenRaster (.ora)"; GroupDescription: "{cm:Ass
 [Files]
 ; A debug run's kernel left in build/flutter_assets is not needed by the AOT build.
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "kernel_blob.bin"; Flags: ignoreversion recursesubdirs createallsubdirs
+; The license and the notices of what Paintbox is built from.
+Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\NOTICE.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\LICENSES\*"; DestDir: "{app}\LICENSES"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Paintbox"; Filename: "{app}\paintbox.exe"

@@ -5,7 +5,7 @@
   <summary>An image editor with layers</summary>
   <summary xml:lang="uk">Редактор зображень із шарами</summary>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>GPL-3.0-or-later</project_license>
   <launchable type="desktop-id">dev.paintbox.Paintbox.desktop</launchable>
   <description>
     <p>Layers, selections, brushes, shapes, text, adjustments and effects;

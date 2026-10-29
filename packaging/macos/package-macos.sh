@@ -25,6 +25,8 @@ entitlements="$app_dir/macos/Runner/Release.entitlements"
 
 (cd "$app_dir" && flutter build macos --release)
 app="$app_dir/build/macos/Build/Products/Release/Paintbox.app"
+# The license and the notices travel inside the bundle (before signing).
+cp -r "$root/LICENSE" "$root/NOTICE.md" "$root/LICENSES" "$app/Contents/Resources/"
 mkdir -p "$dist"
 
 if [ -z "${SIGN_IDENTITY:-}" ]; then

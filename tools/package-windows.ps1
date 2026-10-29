@@ -33,6 +33,12 @@ function Remove-Stale($dir) {
     if (Test-Path $kernel) { Remove-Item -Force $kernel }
 }
 
+# The license and the notices travel with every package.
+function Add-Legal($dir) {
+    Copy-Item (Join-Path $root "LICENSE"), (Join-Path $root "NOTICE.md") $dir
+    Copy-Item -Recurse (Join-Path $root "LICENSES") (Join-Path $dir "LICENSES")
+}
+
 # pubspec's 0.1.0+1: the version and the build number.
 $line = Select-String -Path (Join-Path $app "pubspec.yaml") -Pattern '^version:\s*(\d+)\.(\d+)\.(\d+)(?:\+(\d+))?' | Select-Object -First 1
 if (-not $line) { throw "no version in pubspec.yaml" }
@@ -58,6 +64,7 @@ Step "portable zip" {
     if (Test-Path $folder) { Remove-Item -Recurse -Force $folder }
     Copy-Item -Recurse $release $folder
     Remove-Stale $folder
+    Add-Legal $folder
     if (Test-Path $zip) { Remove-Item -Force $zip }
     # Windows' own tar (bsdtar, Windows 10 and later) writes standard "/"
     # entry names; Compress-Archive in Windows PowerShell writes "\", and
@@ -80,6 +87,7 @@ Step "msix" {
     if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
     Copy-Item -Recurse $release $stage
     Remove-Stale $stage
+    Add-Legal $stage
     $assets = New-Item -ItemType Directory -Force (Join-Path $stage "Assets")
     $icons = Join-Path $packaging "icons"
     Copy-Item (Join-Path $icons "paintbox-44.png") (Join-Path $assets "Square44x44Logo.png")

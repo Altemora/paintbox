@@ -32,6 +32,10 @@ mkdir -p "$appdir/usr/bin" "$appdir/usr/share/applications" "$appdir/usr/share/m
 cp -r "$bundle"/. "$appdir/usr/bin/"
 cp "$here/$app_id.desktop" "$appdir/usr/share/applications/"
 cp "$here/$app_id.metainfo.xml" "$appdir/usr/share/metainfo/"
+# The license and the notices of what Paintbox is built from.
+doc="$appdir/usr/share/doc/paintbox"
+mkdir -p "$doc"
+cp -r "$root/LICENSE" "$root/NOTICE.md" "$root/LICENSES" "$doc/"
 for size in 48 64 128 256 512; do
   icons="$appdir/usr/share/icons/hicolor/${size}x${size}/apps"
   mkdir -p "$icons"

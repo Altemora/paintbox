@@ -123,20 +123,20 @@ impl Tool {
     pub fn hint(self) -> &'static str {
         match self {
             Tool::RectangleSelect => {
-                "Click and drag to draw a rectangular selection. Hold Shift for a square."
+                "Drag to select a rectangle. Shift keeps it square."
             }
             Tool::MoveSelectedPixels => {
                 "Drag the selection to move it. Hold Ctrl to leave a copy. Arrow keys nudge."
             }
-            Tool::LassoSelect => "Click and drag to draw the outline of a selection.",
+            Tool::LassoSelect => "Drag to draw the outline of a selection.",
             Tool::MoveSelection => "Drag the selection outline to move it. The pixels stay.",
             Tool::EllipseSelect => {
-                "Click and drag to draw an elliptical selection. Hold Shift for a circle."
+                "Drag to select an ellipse. Shift keeps it round."
             }
             Tool::Zoom => {
                 "Left click to zoom in, right click to zoom out, drag a rectangle to zoom to it."
             }
-            Tool::MagicWand => "Click to select an area of similar color. Shift selects globally.",
+            Tool::MagicWand => "Click a color to select the area around it. Shift selects it across the image.",
             Tool::Pan => "Drag to move the view.",
             Tool::PaintBucket => {
                 "Left click fills with the primary color, right click with the secondary."
