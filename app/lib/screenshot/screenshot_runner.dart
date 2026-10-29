@@ -14,9 +14,11 @@ import 'package:path/path.dart' as p;
 /// `<target>-<scene>.png` for each and quits.
 ///
 /// - `empty`: the blank image as the program starts;
-/// - `layers`: an OpenRaster file with two layers, opened as File > Open
-///   opens it, with an elliptical selection drawn by the pointer;
-/// - `effect`: the Gaussian Blur dialog previewing on that image.
+/// - `layers`: an OpenRaster file of six layers (a night landscape made
+///   with the core's own tools and effects), opened as File > Open opens
+///   it, the Colors window as Less, with an elliptical selection drawn
+///   by the pointer around the moon;
+/// - `effect`: the Gaussian Blur dialog previewing on that selection.
 class ScreenshotRunner {
   ScreenshotRunner({
     required this.target,
@@ -123,10 +125,9 @@ class ScreenshotRunner {
               continue;
             }
             await _end(bloc);
-            // Colors as Less, the Text tool's settings in the bar.
-            bloc
-              ..add(const ColorsMoreToggledEvent())
-              ..add(const ToolSelectedEvent(Tool.text));
+            // Colors is Less since the layered file; the Text tool's
+            // settings in the bar.
+            bloc.add(const ToolSelectedEvent(Tool.text));
             await _settle(const Duration(milliseconds: 600));
           case 'strips':
             if (!wanted) {
@@ -240,7 +241,8 @@ class ScreenshotRunner {
         ),
       );
     await _settle(const Duration(milliseconds: 300));
-    await _drag(bloc, const ui.Offset(60, 40), const ui.Offset(60, 40));
+    // On the hills, under the title the picture already has.
+    await _drag(bloc, const ui.Offset(56, 330), const ui.Offset(56, 330));
     bloc
       ..add(const TextTypedEvent('Paintbox'))
       ..add(const TextKeyPressedEvent(TextKey.enter, ctrl: false))
@@ -306,7 +308,7 @@ class ScreenshotRunner {
   }
 
   Future<void> _layers(EditorBloc bloc) async {
-    final path = await _makeLayeredFile();
+    final path = await _makeLayeredFile(language);
     bloc.add(OpenPathsEvent([path]));
     await _settle(const Duration(milliseconds: 1200));
     final ready = bloc.state;
@@ -314,9 +316,13 @@ class ScreenshotRunner {
       throw StateError('the image did not open');
     }
     final view = ready.view!;
-    bloc.add(const ToolSelectedEvent(Tool.ellipseSelect));
-    final from = view.toScreen(const ui.Offset(150, 110));
-    final to = view.toScreen(const ui.Offset(470, 330));
+    // Colors as Less: the picture, not the wheel, is what the shot is
+    // about. An ellipse around the moon, for the effect to preview in.
+    bloc
+      ..add(const ColorsMoreToggledEvent())
+      ..add(const ToolSelectedEvent(Tool.ellipseSelect));
+    final from = view.toScreen(const ui.Offset(470, 30));
+    final to = view.toScreen(const ui.Offset(790, 280));
     bloc.add(
       CanvasPointerDownEvent(
         position: from,
@@ -342,27 +348,42 @@ class ScreenshotRunner {
     await _settle(const Duration(milliseconds: 900));
   }
 
-  /// Two layers made with the core's own tools: a gradient background
-  /// and, above it, strokes and a filled ellipse on a transparent layer.
-  static Future<String> _makeLayeredFile() async {
+  /// A night landscape of six layers made with the core's own tools and
+  /// effects, so the picture shows what the program does: a sky
+  /// gradient, a haze of Clouds screened over it, stars, a moon with a
+  /// halo of a radial gradient, three ranges of hills as freeform
+  /// shapes, and the title in the Text tool. The moon's layer is active
+  /// (the effect scene blurs it). The layers are named in the language
+  /// of the shot.
+  static Future<String> _makeLayeredFile(String language) async {
+    final names = switch (language) {
+      'uk' => const ['Небо', 'Серпанок', 'Зорі', 'Місяць', 'Пагорби', 'Назва'],
+      _ => const ['Sky', 'Haze', 'Stars', 'Moon', 'Hills', 'Title'],
+    };
+    const width = 800;
+    const height = 500;
+    const white = Rgba8(r: 255, g: 255, b: 255, a: 255);
     final image = PaintImage.blank(
-      width: 640,
-      height: 440,
-      background: const Rgba8(r: 255, g: 255, b: 255, a: 255),
-      colors: const UserColors(
-        primary: Rgba8(r: 47, g: 84, b: 160, a: 255),
-        secondary: Rgba8(r: 234, g: 196, b: 120, a: 255),
-      ),
+      width: width,
+      height: height,
+      background: white,
+      colors: const UserColors(primary: white, secondary: white),
     );
-    final settings = defaultToolSettings().copyWith(width: 14);
-    void drag(Tool tool, List<(double, double)> points, {bool right = false}) {
+    var settings = defaultToolSettings();
+    var layer = 0;
+
+    void colors(Rgba8 primary, [Rgba8? secondary]) => image.setColors(
+      colors: UserColors(primary: primary, secondary: secondary ?? primary),
+      settings: settings,
+    );
+    void drag(Tool tool, List<(double, double)> points, {bool finish = true}) {
       final (x0, y0) = points.first;
       image.press(
         tool: tool,
         settings: settings,
         x: x0,
         y: y0,
-        secondary: right,
+        secondary: false,
         ctrl: false,
         alt: false,
         shift: false,
@@ -372,43 +393,182 @@ class ScreenshotRunner {
         image.moveTo(settings: settings, x: x, y: y);
       }
       final (x1, y1) = points.last;
-      image
-        ..release(
-          settings: settings,
-          x: x1,
-          y: y1,
-          secondary: right,
-          ctrl: false,
-          alt: false,
-          shift: false,
-          time: 1,
-        )
-        ..finish();
+      image.release(
+        settings: settings,
+        x: x1,
+        y: y1,
+        secondary: false,
+        ctrl: false,
+        alt: false,
+        shift: false,
+        time: 1,
+      );
+      if (finish) {
+        image.finish();
+      }
     }
 
-    drag(Tool.gradient, [(0, 0), (320, 220), (640, 440)]);
-    image.run(id: 'add_layer');
-    image.setColors(
-      colors: const UserColors(
-        primary: Rgba8(r: 214, g: 64, b: 92, a: 255),
-        secondary: Rgba8(r: 250, g: 250, b: 250, a: 220),
-      ),
-      settings: settings,
+    void name(
+      String name, {
+      BlendMode blend = BlendMode.normal,
+      int opacity = 255,
+    }) {
+      image.setLayerProperties(
+        index: layer,
+        properties: LayerProperties(
+          name: name,
+          visible: true,
+          opacity: opacity,
+          blendMode: blend,
+          isBackground: layer == 0,
+        ),
+      );
+    }
+
+    void addLayer() {
+      image.run(id: 'add_layer');
+      layer += 1;
+    }
+
+    // An effect through its dialog, as Effects > ... applies it: the
+    // render runs on a worker, so the dialog is polled until it is in.
+    Future<void> effect(String id, Map<String, double> params) async {
+      if (!image.openPreview(id: id)) {
+        throw StateError('no dialog for $id');
+      }
+      for (final MapEntry(:key, :value) in params.entries) {
+        image.setPreviewParam(name: key, values: [value]);
+      }
+      for (var i = 0; i < 400; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        if (!image.pollPreview().rendering) {
+          break;
+        }
+      }
+      if (!image.endPreview(ok: true)) {
+        for (var i = 0; i < 400; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 30));
+          if (!image.pollPreview().open) {
+            break;
+          }
+        }
+      }
+    }
+
+    // The sky: night blue above, dusk plum at the horizon.
+    colors(
+      const Rgba8(r: 12, g: 20, b: 56, a: 255),
+      const Rgba8(r: 118, g: 52, b: 104, a: 255),
     );
-    drag(Tool.paintbrush, [
-      for (var i = 0; i <= 40; i++) (60.0 + i * 13, 340 - 120 * _wave(i / 40)),
+    settings = settings.copyWith(gradient: GradientKind.linear);
+    drag(Tool.gradient, [(400, 0), (400, height.toDouble())]);
+    name(names[0]);
+
+    // A haze: Clouds, screened faintly over the sky.
+    addLayer();
+    await effect('effect:clouds', {'scale': 340, 'power': 0.6});
+    name(names[1], blend: BlendMode.screen, opacity: 54);
+
+    // Stars: small filled ellipses, scattered the same way every time.
+    addLayer();
+    settings = settings.copyWith(shapeDraw: ShapeDraw.interior, width: 1);
+    var seed = 20261029;
+    double next() {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      return seed / 0x7fffffff;
+    }
+
+    for (var i = 0; i < 110; i++) {
+      final x = next() * width;
+      final y = next() * 300;
+      final size = 1.2 + next() * 2.6;
+      final alpha = 120 + (next() * 135).round();
+      colors(Rgba8(r: 255, g: 250, b: 236, a: alpha));
+      drag(Tool.ellipse, [(x - size, y - size), (x + size, y + size)]);
+    }
+    name(names[2]);
+
+    // The moon: a halo of a radial gradient fading to nothing, then the
+    // disc.
+    addLayer();
+    colors(
+      const Rgba8(r: 255, g: 234, b: 186, a: 150),
+      const Rgba8(r: 255, g: 234, b: 186, a: 0),
+    );
+    settings = settings.copyWith(gradient: GradientKind.radial);
+    drag(Tool.gradient, [(640, 150), (830, 150)]);
+    colors(const Rgba8(r: 255, g: 246, b: 214, a: 255));
+    drag(Tool.ellipse, [(598, 108), (682, 192)]);
+    name(names[3]);
+
+    // Three ranges of hills, nearer ones darker.
+    addLayer();
+    colors(const Rgba8(r: 58, g: 46, b: 96, a: 255));
+    drag(Tool.freeformShape, [
+      (0, 300),
+      (80, 282),
+      (170, 262),
+      (260, 276),
+      (340, 300),
+      (430, 286),
+      (520, 268),
+      (610, 290),
+      (700, 282),
+      (800, 296),
+      (800, 500),
+      (0, 500),
     ]);
-    drag(Tool.ellipse, [(380, 60), (560, 200)], right: true);
-    final path = p.join(Directory.systemTemp.path, 'paintbox-two-layers.ora');
+    colors(const Rgba8(r: 36, g: 32, b: 68, a: 255));
+    drag(Tool.freeformShape, [
+      (0, 346),
+      (70, 332),
+      (160, 318),
+      (250, 334),
+      (350, 352),
+      (450, 330),
+      (560, 316),
+      (680, 338),
+      (800, 330),
+      (800, 500),
+      (0, 500),
+    ]);
+    colors(const Rgba8(r: 20, g: 20, b: 42, a: 255));
+    drag(Tool.freeformShape, [
+      (0, 392),
+      (90, 372),
+      (200, 360),
+      (300, 380),
+      (420, 374),
+      (540, 392),
+      (660, 366),
+      (760, 380),
+      (800, 388),
+      (800, 500),
+      (0, 500),
+    ]);
+    name(names[4]);
+
+    // The title: a click of the Text tool opens the caret, the typing
+    // follows, and finishing commits it (a finish before the typing
+    // would drop the caret instead).
+    addLayer();
+    colors(const Rgba8(r: 246, g: 240, b: 232, a: 255));
+    settings = settings.copyWith(fontSize: 56, bold: true);
+    drag(Tool.text, [(56, 44)], finish: false);
+    if (!image.typeText(settings: settings, text: 'Paintbox')) {
+      throw StateError('the Text tool did not take the title');
+    }
+    image.finish();
+    name(names[5]);
+
+    image.setActiveLayer(index: 3);
+    final path = p.join(Directory.systemTemp.path, 'paintbox-night.ora');
     final snapshot = image.snapshot();
     await writeSnapshot(snapshot: snapshot, path: path, jpegQuality: 95);
     snapshot.dispose();
     image.dispose();
     return path;
   }
-
-  static double _wave(double t) =>
-      0.5 - 0.5 * (t * 2 - 1) * (t * 2 - 1) * 2 + t;
 
   Future<void> _capture(GlobalKey boundary, String name) async {
     await WidgetsBinding.instance.endOfFrame;

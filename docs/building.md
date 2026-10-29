@@ -70,11 +70,11 @@ of them.
 | Scene | What it shows |
 |---|---|
 | `empty` | The blank image the program starts with. |
-| `layers` | An OpenRaster file with two layers (a gradient, and a stroke with an ellipse drawn by the core's tools), opened the way File > Open opens it, with an elliptical selection dragged by the pointer. |
+| `layers` | An OpenRaster file of six layers, a night landscape made with the core's own tools and effects (a sky gradient, Clouds screened over it, stars, a moon with a radial-gradient halo, hills as freeform shapes, the title in the Text tool), opened the way File > Open opens it, the Colors window in Less mode, with an elliptical selection dragged by the pointer around the moon. The layers are named in the shot's language. |
 | `effect` | The Gaussian Blur dialog previewing on the selection. |
 | `text`, `lines`, `transform` | The Text tool; line ends and dash styles; a rotated fragment. |
 | `effects` | One picture per effect. |
-| `compact` | The Colors window in Less mode and the Text tool's settings. |
+| `compact` | The Text tool's settings in the tool bar (Colors in Less mode, as in `layers`). |
 | `strips` | The tool bar of each kind of tool (`strip-<tool>`). |
 
 Screenshots neither read nor write the user's settings, and the

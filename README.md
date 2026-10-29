@@ -12,7 +12,7 @@ macOS.
 > keep copies of the images you care about. Bug reports and suggestions
 > are welcome on the [Issues](../../issues) page.
 
-![Paintbox with a two-layer image and an elliptical selection, dark theme](docs/images/en-dark.png)
+![Paintbox with a six-layer night landscape and an elliptical selection around the moon, dark theme](docs/images/en-dark.png)
 
 ## Features
 
@@ -45,7 +45,7 @@ macOS.
 
 ![The same image in the light theme with a green accent](docs/images/en-light.png)
 
-![The Gaussian Blur dialog previewing on the selection](docs/images/en-effect.png)
+![The Gaussian Blur dialog previewing on the selected moon](docs/images/en-effect.png)
 
 ## Download
 
