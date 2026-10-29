@@ -36,9 +36,6 @@ class EditorShellComponent extends StatefulWidget {
 }
 
 class _EditorShellComponentState extends State<EditorShellComponent> {
-  /// Two tool buttons a row, as Paint.NET has them, and room for the title.
-  static const _toolsWidth = 2 * ControlSize.button + Space.xxs + 2 * Space.xs;
-
   /// History and Layers share a width, their edges in one line.
   static const _rightWidth = 240.0;
 
@@ -314,7 +311,6 @@ class _EditorShellComponentState extends State<EditorShellComponent> {
                                   FloatingPanelWidget(
                                     title: words.panelTools,
                                     alignment: Alignment.topLeft,
-                                    width: _toolsWidth,
                                     dimmed: dimmed,
                                     hideTooltip: '${words.panelHide} (F5)',
                                     onHide: () => hide('toggle_tools'),

@@ -162,6 +162,10 @@ class ScreenshotRunner {
             continue;
         }
         if (wanted) {
+          // The pointer leaves the canvas, so the floating windows are
+          // opaque and show their true colours.
+          bloc.add(const CanvasPointerExitedEvent());
+          await _settle(const Duration(milliseconds: 400));
           await _capture(boundary, name);
         }
       }

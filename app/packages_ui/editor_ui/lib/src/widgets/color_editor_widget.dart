@@ -37,6 +37,7 @@ class ColorEditorWidget extends StatelessWidget {
     required this.expanded,
     required this.labels,
     this.leading,
+    this.showOpacity = true,
     super.key,
   });
 
@@ -47,6 +48,10 @@ class ColorEditorWidget extends StatelessWidget {
 
   /// Above the wheel: the two colours and their buttons.
   final Widget? leading;
+
+  /// False where the colour is always opaque (the accent): the compact
+  /// editor then has no opacity slider.
+  final bool showOpacity;
 
   /// The compact editor's width: everything under the wheel fits it.
   static const double wheelSize = _WheelWidget.size;
@@ -114,15 +119,16 @@ class ColorEditorWidget extends StatelessWidget {
           ?leading,
           wheel,
           const SizedBox(height: Space.xxs),
-          _ChannelSlider(
-            label: labels.opacity,
-            value: color.a.toDouble(),
-            max: 255,
-            track: alphaTrack,
-            onChanged: setAlpha,
-            compact: true,
-            checker: true,
-          ),
+          if (showOpacity)
+            _ChannelSlider(
+              label: labels.opacity,
+              value: color.a.toDouble(),
+              max: 255,
+              track: alphaTrack,
+              onChanged: setAlpha,
+              compact: true,
+              checker: true,
+            ),
           hex,
         ],
       );

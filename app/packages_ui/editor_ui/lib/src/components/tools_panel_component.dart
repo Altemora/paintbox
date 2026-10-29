@@ -18,7 +18,8 @@ class ToolsPanelComponent extends StatelessWidget {
     final tools = PaintCatalog.tools;
     return BlocSelector<EditorBloc, EditorState, Tool?>(
       selector: (state) => state is EditorReady ? state.tool : null,
-      // Two a row, as Paint.NET has them, whatever the window's width.
+      // Two buttons per row, as in Paint.NET; the window is as wide as
+      // this or its title, whichever is wider.
       builder: (context, active) => Center(
         child: SizedBox(
           width: 2 * ControlSize.button + Space.xxs,

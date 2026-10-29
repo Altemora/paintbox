@@ -75,7 +75,12 @@ class ColorsPanelComponent extends StatelessWidget {
             child: Container(
               width: size ?? ControlSize.swatch,
               height: size ?? ControlSize.swatch,
-              color: swatch.color,
+              // Edged, so white reads on the light panel and black on the
+              // dark one.
+              decoration: BoxDecoration(
+                color: swatch.color,
+                border: Border.all(color: context.tokens.hairlineStrong),
+              ),
             ),
           ),
         );

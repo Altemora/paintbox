@@ -10,7 +10,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:paint_logic/paint_logic.dart';
 
 /// The top right corner, as in Paint.NET: the floating windows shown or
-/// hidden (F5 - F8), the settings (the theme) and help.
+/// hidden (F5 - F8), the settings (theme, accent colour, language) and
+/// help.
 class WindowTogglesComponent extends StatelessWidget {
   const WindowTogglesComponent({super.key});
 
@@ -33,6 +34,7 @@ class WindowTogglesComponent extends StatelessWidget {
             child: ColorEditorWidget(
               color: color,
               expanded: false,
+              showOpacity: false,
               onChanged: (next) => setState(
                 () => color = Rgba8(r: next.r, g: next.g, b: next.b, a: 255),
               ),

@@ -30,7 +30,7 @@ class IconHues extends ThemeExtension<IconHues> {
     blue: Color(0xFF2F6FDB),
     cyan: Color(0xFF1597A8),
     green: Color(0xFF2E9E5B),
-    yellow: Color(0xFFC99A0E),
+    yellow: Color(0xFF9E7800),
     orange: Color(0xFFD9731F),
     red: Color(0xFFD14257),
     violet: Color(0xFF7D57D6),

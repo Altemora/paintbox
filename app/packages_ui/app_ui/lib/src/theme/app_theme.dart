@@ -148,7 +148,10 @@ abstract final class AppTheme {
     final isDark = scheme.brightness == Brightness.dark;
     final tokens = isDark ? AppTokens.dark(scheme) : AppTokens.light(scheme);
     final popover = isDark ? const Color(0xFF1E1D23) : const Color(0xFFFFFFFF);
-    // Buttons keep the small radius of every control: room is dear.
+    // The edge of a field, a check box or a slider track: 3:1 against the
+    // surface, the contrast a control's boundary needs.
+    final control = AccentPalette.readable(scheme.outline, scheme.surface);
+    // Buttons keep the small radius of every control: space is scarce.
     final pill = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(Radii.xxs),
     );
@@ -188,8 +191,8 @@ abstract final class AppTheme {
         ),
         hintStyle: text.bodySmall?.copyWith(color: tokens.muted),
         labelStyle: text.bodySmall?.copyWith(color: tokens.muted),
-        border: field(tokens.hairline),
-        enabledBorder: field(tokens.hairline),
+        border: field(control),
+        enabledBorder: field(control),
         focusedBorder: field(scheme.primary.withValues(alpha: 0.7), 1.2),
         errorBorder: field(tokens.danger),
         focusedErrorBorder: field(tokens.danger, 1.2),
@@ -270,7 +273,7 @@ abstract final class AppTheme {
       sliderTheme: SliderThemeData(
         trackHeight: 3,
         activeTrackColor: scheme.primary,
-        inactiveTrackColor: tokens.hairlineStrong,
+        inactiveTrackColor: control,
         thumbColor: scheme.primary,
         overlayColor: tokens.accentSoft,
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
@@ -278,7 +281,7 @@ abstract final class AppTheme {
       ),
       checkboxTheme: CheckboxThemeData(
         visualDensity: VisualDensity.compact,
-        side: BorderSide(color: tokens.hairlineStrong, width: 1.4),
+        side: BorderSide(color: control, width: 1.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Space.xxs),
         ),

@@ -100,7 +100,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     hairlineStrong: Colors.white.withValues(alpha: 0.16),
     glow: scheme.primary.withValues(alpha: 0.28),
     shadow: Colors.black.withValues(alpha: 0.45),
-    accentSoft: scheme.primary.withValues(alpha: 0.16),
+    accentSoft: scheme.primary.withValues(alpha: 0.24),
     onAccentSoft: AccentPalette.readable(
       Color.lerp(scheme.primary, Colors.white, 0.35)!,
       scheme.surface,
@@ -129,7 +129,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     hairlineStrong: Colors.black.withValues(alpha: 0.18),
     glow: scheme.primary.withValues(alpha: 0.22),
     shadow: Colors.black.withValues(alpha: 0.12),
-    accentSoft: scheme.primary.withValues(alpha: 0.12),
+    accentSoft: scheme.primary.withValues(alpha: 0.22),
     onAccentSoft: AccentPalette.readable(
       Color.lerp(scheme.primary, Colors.black, 0.25)!,
       scheme.surface,
