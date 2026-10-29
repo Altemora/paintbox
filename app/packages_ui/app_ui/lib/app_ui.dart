@@ -1,4 +1,6 @@
+export 'src/localization/app_languages.dart';
 export 'src/localization/generated/app_localizations.dart';
+export 'src/theme/accent_palette.dart';
 export 'src/theme/app_theme.dart';
 export 'src/theme/app_tokens.dart';
 export 'src/theme/icon_hues.dart';

@@ -18,7 +18,13 @@ import 'package:path/path.dart' as p;
 ///   opens it, with an elliptical selection drawn by the pointer;
 /// - `effect`: the Gaussian Blur dialog previewing on that image.
 class ScreenshotRunner {
-  ScreenshotRunner({required this.target, this.scene});
+  ScreenshotRunner({
+    required this.target,
+    this.scene,
+    this.theme = ThemeChoice.dark,
+    this.accent = AccentChoice.blue,
+    this.language = 'en',
+  });
 
   static const scenes = [
     'empty',
@@ -46,8 +52,11 @@ class ScreenshotRunner {
   final String target;
   final String? scene;
 
-  /// Screenshots are in Ukrainian, the program's first language.
-  ui.Locale get locale => const ui.Locale('uk');
+  /// The look of the pictures, apart from the user's settings:
+  /// `--theme=`, `--accent=` and `--language=` on the command line.
+  final ThemeChoice theme;
+  final AccentChoice accent;
+  final String language;
 
   void start(EditorBloc bloc, GlobalKey boundary) =>
       unawaited(_play(bloc, boundary));

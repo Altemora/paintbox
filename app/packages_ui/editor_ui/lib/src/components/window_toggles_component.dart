@@ -1,6 +1,8 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:editor_ui/src/bloc/editor_bloc.dart';
+import 'package:editor_ui/src/widgets/accent_color.dart';
 import 'package:editor_ui/src/widgets/bar_button_widget.dart';
+import 'package:editor_ui/src/widgets/color_editor_widget.dart';
 import 'package:editor_ui/src/widgets/paint_words.dart';
 import 'package:editor_ui/src/widgets/tool_icon_widget.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,62 @@ import 'package:paint_logic/paint_logic.dart';
 class WindowTogglesComponent extends StatelessWidget {
   const WindowTogglesComponent({super.key});
 
+  /// The custom accent from the colour wheel; OK chooses it.
+  static Future<void> _chooseCustom(
+    BuildContext context,
+    EditorBloc bloc,
+    EditorReady state,
+  ) async {
+    final words = AppLocalizations.of(context);
+    var color = ColorRgba8(AccentChoice.custom.color(state.customAccent)).rgba8;
+    final chosen = await AppDialogs.show<Rgba8>(
+      context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AppDialogs.card(
+          context,
+          title: words.accentCustomTitle,
+          width: 320,
+          body: Center(
+            child: ColorEditorWidget(
+              color: color,
+              expanded: false,
+              onChanged: (next) => setState(
+                () => color = Rgba8(r: next.r, g: next.g, b: next.b, a: 255),
+              ),
+              labels: ColorEditorLabels(
+                hue: words.colorsHue,
+                saturation: words.colorsSat,
+                value: words.colorsValue,
+                red: words.colorsRed,
+                green: words.colorsGreen,
+                blue: words.colorsBlue,
+                alpha: 'A',
+                hex: '#',
+                opacity: words.layerOpacity,
+              ),
+            ),
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(words.cancel),
+            ),
+            FilledButton(
+              autofocus: true,
+              onPressed: () => Navigator.of(context).pop(color),
+              child: Text(words.ok),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null) {
+      bloc.add(
+        AccentChosenEvent(AccentChoice.custom, custom: chosen.color.toARGB32()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final words = AppLocalizations.of(context);
@@ -21,7 +79,10 @@ class WindowTogglesComponent extends StatelessWidget {
           a is! EditorReady ||
           b is! EditorReady ||
           a.panels != b.panels ||
-          a.theme != b.theme,
+          a.theme != b.theme ||
+          a.accent != b.accent ||
+          a.customAccent != b.customAccent ||
+          a.language != b.language,
       builder: (context, state) {
         if (state is! EditorReady) {
           return const SizedBox.shrink();
@@ -69,21 +130,58 @@ class WindowTogglesComponent extends StatelessWidget {
             ),
             MenuAnchor(
               menuChildren: [
-                for (final (choice, label) in [
-                  (ThemeChoice.system, words.themeSystem),
-                  (ThemeChoice.dark, words.themeDark),
-                  (ThemeChoice.light, words.themeLight),
-                ])
-                  MenuItemButton(
-                    leadingIcon: SizedBox(
-                      width: 16,
-                      child: state.theme == choice
-                          ? const Icon(Icons.check_rounded, size: 14)
-                          : null,
+                SubmenuButton(
+                  leadingIcon: const Icon(Icons.contrast_rounded, size: 16),
+                  menuChildren: [
+                    for (final (choice, label) in [
+                      (ThemeChoice.system, words.themeSystem),
+                      (ThemeChoice.dark, words.themeDark),
+                      (ThemeChoice.light, words.themeLight),
+                    ])
+                      MenuItemButton(
+                        leadingIcon: _Check(shown: state.theme == choice),
+                        onPressed: () => bloc.add(ThemeChosenEvent(choice)),
+                        child: Text(label),
+                      ),
+                  ],
+                  child: Text(words.menuTheme),
+                ),
+                SubmenuButton(
+                  leadingIcon: const Icon(Icons.palette_outlined, size: 16),
+                  menuChildren: [
+                    for (final choice in AccentChoice.values)
+                      MenuItemButton(
+                        leadingIcon: _Check(shown: state.accent == choice),
+                        trailingIcon: _Swatch(
+                          color: choice.color(state.customAccent),
+                        ),
+                        onPressed: choice == AccentChoice.custom
+                            ? () => _chooseCustom(context, bloc, state)
+                            : () => bloc.add(AccentChosenEvent(choice)),
+                        child: Text(words.accentName(choice.name)),
+                      ),
+                  ],
+                  child: Text(words.menuAccent),
+                ),
+                SubmenuButton(
+                  leadingIcon: const Icon(Icons.translate_rounded, size: 16),
+                  menuChildren: [
+                    MenuItemButton(
+                      leadingIcon: _Check(shown: state.language == null),
+                      onPressed: () =>
+                          bloc.add(const LanguageChosenEvent(null)),
+                      child: Text(words.languageSystem),
                     ),
-                    onPressed: () => bloc.add(ThemeChosenEvent(choice)),
-                    child: Text(label),
-                  ),
+                    for (final MapEntry(key: code, value: name)
+                        in AppLanguages.names.entries)
+                      MenuItemButton(
+                        leadingIcon: _Check(shown: state.language == code),
+                        onPressed: () => bloc.add(LanguageChosenEvent(code)),
+                        child: Text(name),
+                      ),
+                  ],
+                  child: Text(words.menuLanguage),
+                ),
               ],
               builder: (context, controller, _) => BarButtonWidget(
                 tooltip: words.menuSettings,
@@ -102,4 +200,35 @@ class WindowTogglesComponent extends StatelessWidget {
       },
     );
   }
+}
+
+/// The tick before the chosen item of a settings list.
+class _Check extends StatelessWidget {
+  const _Check({required this.shown});
+
+  final bool shown;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 16,
+    child: shown ? const Icon(Icons.check_rounded, size: 14) : null,
+  );
+}
+
+/// The accent's colour after its name.
+class _Swatch extends StatelessWidget {
+  const _Swatch({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 14,
+    height: 14,
+    decoration: BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+      border: Border.all(color: context.tokens.hairlineStrong),
+    ),
+  );
 }

@@ -343,6 +343,23 @@ final class ThemeChosenEvent extends EditorEvent {
   final ThemeChoice theme;
 }
 
+/// An accent of the set, or [AccentChoice.custom] with its ARGB.
+final class AccentChosenEvent extends EditorEvent {
+  const AccentChosenEvent(this.accent, {this.custom});
+
+  final AccentChoice accent;
+
+  /// The custom colour; null keeps the one chosen before.
+  final int? custom;
+}
+
+/// The interface language by its code; null follows the system.
+final class LanguageChosenEvent extends EditorEvent {
+  const LanguageChosenEvent(this.language);
+
+  final String? language;
+}
+
 /// The thumbnails' quiet moment after painting.
 final class ThumbnailsDueEvent extends EditorEvent {
   const ThumbnailsDueEvent();

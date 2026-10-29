@@ -39,6 +39,16 @@ abstract final class AppSettingsJsonMapper {
             )
           : const Panels(),
       theme: _enum(ThemeChoice.values, json['theme'], defaults.theme),
+      accent: _enum(AccentChoice.values, json['accent'], defaults.accent),
+      customAccent: switch (json['custom_accent']) {
+        final int argb when argb >= 0 && argb <= 0xFFFFFFFF =>
+          argb | 0xFF000000,
+        _ => defaults.customAccent,
+      },
+      language: switch (json['language']) {
+        final String code when code.isNotEmpty => code,
+        _ => null,
+      },
       lastDirectory: directory is String ? directory : null,
       rulers: _bool(json['rulers'], true),
     );
@@ -88,6 +98,9 @@ abstract final class AppSettingsJsonMapper {
         },
       },
       'theme': settings.theme.name,
+      'accent': settings.accent.name,
+      'custom_accent': settings.customAccent,
+      'language': settings.language,
       'last_directory': settings.lastDirectory,
       'rulers': settings.rulers,
     };

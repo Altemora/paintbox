@@ -51,6 +51,33 @@ class AppLocalizationsUk extends AppLocalizations {
   String get menuSettings => 'Налаштування';
 
   @override
+  String get menuAccent => 'Акцентний колір';
+
+  @override
+  String get menuLanguage => 'Мова';
+
+  @override
+  String get languageSystem => 'Як у системі';
+
+  @override
+  String accentName(String name) {
+    String _temp0 = intl.Intl.selectLogic(name, {
+      'blue': 'Синій',
+      'green': 'Зелений',
+      'amber': 'Бурштиновий',
+      'purple': 'Пурпуровий',
+      'red': 'Червоний',
+      'gray': 'Сірий',
+      'custom': 'Інший…',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get accentCustomTitle => 'Інший акцентний колір';
+
+  @override
   String get unitsPixels => 'пкс';
 
   @override

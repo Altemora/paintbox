@@ -136,6 +136,26 @@ void main() {
     expect(actions.whereType<CanvasTilesAction>(), isNotEmpty);
   });
 
+  test('the accent and the language are chosen and kept', () async {
+    bloc.add(const AccentChosenEvent(AccentChoice.green));
+    await settle();
+    expect(ready().accent, AccentChoice.green);
+    bloc
+      ..add(const AccentChosenEvent(AccentChoice.custom, custom: 0xFF123456))
+      ..add(const LanguageChosenEvent('de'));
+    await settle();
+    expect(ready().accent, AccentChoice.custom);
+    expect(ready().customAccent, 0xFF123456);
+    expect(ready().language, 'de');
+    bloc
+      ..add(const AccentChosenEvent(AccentChoice.red))
+      ..add(const LanguageChosenEvent(null));
+    await settle();
+    // The custom colour stays for the next time it is chosen.
+    expect(ready().customAccent, 0xFF123456);
+    expect(ready().language, isNull);
+  });
+
   test('a stroke is a step; Ctrl+Z undoes it, Ctrl+Y redoes it', () async {
     await drag(const Offset(100, 100), const Offset(300, 200));
     expect(ready().image?.history, ['New Image', 'Paintbrush']);

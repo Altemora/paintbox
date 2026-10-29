@@ -51,6 +51,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSettings => 'Settings';
 
   @override
+  String get menuAccent => 'Accent color';
+
+  @override
+  String get menuLanguage => 'Language';
+
+  @override
+  String get languageSystem => 'System default';
+
+  @override
+  String accentName(String name) {
+    String _temp0 = intl.Intl.selectLogic(name, {
+      'blue': 'Blue',
+      'green': 'Green',
+      'amber': 'Amber',
+      'purple': 'Purple',
+      'red': 'Red',
+      'gray': 'Gray',
+      'custom': 'Custom…',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get accentCustomTitle => 'Custom accent color';
+
+  @override
   String get unitsPixels => 'px';
 
   @override

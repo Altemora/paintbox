@@ -155,6 +155,9 @@ final class EditorReady extends EditorState {
     required this.panels,
     required this.theme,
     required this.recentFiles,
+    this.accent = AccentChoice.blue,
+    this.customAccent = AppSettings.defaultCustomAccent,
+    this.language,
     this.activeId,
     this.image,
     this.view,
@@ -184,6 +187,13 @@ final class EditorReady extends EditorState {
   final List<Rgba8> palette;
   final Panels panels;
   final ThemeChoice theme;
+  final AccentChoice accent;
+
+  /// ARGB of the accent when [accent] is [AccentChoice.custom].
+  final int customAccent;
+
+  /// The interface language's code; null follows the system.
+  final String? language;
   final List<String> recentFiles;
 
   /// The pointer over the image, in its pixels; null off the canvas.
@@ -274,6 +284,9 @@ final class EditorReady extends EditorState {
     List<Rgba8>? palette,
     Panels? panels,
     ThemeChoice? theme,
+    AccentChoice? accent,
+    int? customAccent,
+    String? Function()? language,
     List<String>? recentFiles,
     Offset? Function()? pointer,
     Rect? Function()? zoomBox,
@@ -297,6 +310,9 @@ final class EditorReady extends EditorState {
     palette: palette ?? this.palette,
     panels: panels ?? this.panels,
     theme: theme ?? this.theme,
+    accent: accent ?? this.accent,
+    customAccent: customAccent ?? this.customAccent,
+    language: language == null ? this.language : language(),
     recentFiles: recentFiles ?? this.recentFiles,
     pointer: pointer == null ? this.pointer : pointer(),
     zoomBox: zoomBox == null ? this.zoomBox : zoomBox(),
@@ -323,6 +339,9 @@ final class EditorReady extends EditorState {
     palette,
     panels,
     theme,
+    accent,
+    customAccent,
+    language,
     recentFiles,
     pointer,
     zoomBox,

@@ -112,6 +112,8 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     on<PreviewEndedEvent>(_onPreviewEnded);
     on<PreviewWokeEvent>(_onPreviewWoke);
     on<ThemeChosenEvent>(_onTheme);
+    on<AccentChosenEvent>(_onAccent);
+    on<LanguageChosenEvent>(_onLanguage);
     on<ColorsMoreToggledEvent>(_onColorsMore);
     on<ThumbnailsDueEvent>(_onThumbnailsDue);
     on<ExpandAnsweredEvent>(_onExpandAnswered);
@@ -172,6 +174,9 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     palette: defaultPalette(),
     panels: settings.panels,
     theme: settings.theme,
+    accent: settings.accent,
+    customAccent: settings.customAccent,
+    language: settings.language,
     rulers: settings.rulers,
     recentFiles: settings.recentFiles,
   );
@@ -750,6 +755,25 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
   void _onTheme(ThemeChosenEvent event, Emitter<EditorState> emit) {
     _settings.update(_settings.getSettingsSync().copyWith(theme: event.theme));
     _emitReady(emit, (s) => s.copyWith(theme: event.theme));
+  }
+
+  void _onAccent(AccentChosenEvent event, Emitter<EditorState> emit) {
+    final settings = _settings.getSettingsSync();
+    final custom = event.custom ?? settings.customAccent;
+    _settings.update(
+      settings.copyWith(accent: event.accent, customAccent: custom),
+    );
+    _emitReady(
+      emit,
+      (s) => s.copyWith(accent: event.accent, customAccent: custom),
+    );
+  }
+
+  void _onLanguage(LanguageChosenEvent event, Emitter<EditorState> emit) {
+    _settings.update(
+      _settings.getSettingsSync().copyWith(language: () => event.language),
+    );
+    _emitReady(emit, (s) => s.copyWith(language: () => event.language));
   }
 
   Future<void> _copy(Emitter<EditorState> emit, {required bool cut}) async {

@@ -176,6 +176,36 @@ abstract class AppLocalizations {
   /// **'Налаштування'**
   String get menuSettings;
 
+  /// No description provided for @menuAccent.
+  ///
+  /// In uk, this message translates to:
+  /// **'Акцентний колір'**
+  String get menuAccent;
+
+  /// No description provided for @menuLanguage.
+  ///
+  /// In uk, this message translates to:
+  /// **'Мова'**
+  String get menuLanguage;
+
+  /// No description provided for @languageSystem.
+  ///
+  /// In uk, this message translates to:
+  /// **'Як у системі'**
+  String get languageSystem;
+
+  /// No description provided for @accentName.
+  ///
+  /// In uk, this message translates to:
+  /// **'{name, select, blue{Синій} green{Зелений} amber{Бурштиновий} purple{Пурпуровий} red{Червоний} gray{Сірий} custom{Інший…} other{}}'**
+  String accentName(String name);
+
+  /// No description provided for @accentCustomTitle.
+  ///
+  /// In uk, this message translates to:
+  /// **'Інший акцентний колір'**
+  String get accentCustomTitle;
+
   /// No description provided for @unitsPixels.
   ///
   /// In uk, this message translates to:

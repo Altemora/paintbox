@@ -5,7 +5,7 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:paint_bridge/paint_bridge.dart';
+import 'package:paint_logic/paint_logic.dart';
 import 'package:paintbox/app.dart';
 import 'package:paintbox/app_bloc_observer.dart';
 import 'package:paintbox/di.dart';
@@ -54,7 +54,19 @@ Future<void> bootstrap(List<String> args) async {
       paths: options.paths,
       runner: screenshot == null
           ? null
-          : ScreenshotRunner(target: screenshot, scene: options.scene),
+          : ScreenshotRunner(
+              target: screenshot,
+              scene: options.scene,
+              theme: ThemeChoice.values.firstWhere(
+                (t) => t.name == options.theme,
+                orElse: () => ThemeChoice.dark,
+              ),
+              accent: AccentChoice.values.firstWhere(
+                (a) => a.name == options.accent,
+                orElse: () => AccentChoice.blue,
+              ),
+              language: options.language ?? 'en',
+            ),
     ),
   );
 }

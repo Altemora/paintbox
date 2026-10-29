@@ -1,5 +1,6 @@
 import 'dart:ui' show lerpDouble;
 
+import 'package:app_ui/src/theme/accent_palette.dart';
 import 'package:flutter/material.dart';
 
 /// Spacing scale, in logical pixels. Distances come from here and nowhere
@@ -100,7 +101,11 @@ class AppTokens extends ThemeExtension<AppTokens> {
     glow: scheme.primary.withValues(alpha: 0.28),
     shadow: Colors.black.withValues(alpha: 0.45),
     accentSoft: scheme.primary.withValues(alpha: 0.16),
-    onAccentSoft: Color.lerp(scheme.primary, Colors.white, 0.35)!,
+    onAccentSoft: AccentPalette.readable(
+      Color.lerp(scheme.primary, Colors.white, 0.35)!,
+      scheme.surface,
+      4.5,
+    ),
     success: const Color(0xFF5BD39B),
     warning: const Color(0xFFF2B65B),
     danger: const Color(0xFFF26B6B),
@@ -118,16 +123,22 @@ class AppTokens extends ThemeExtension<AppTokens> {
     glass: Colors.white.withValues(alpha: 0.55),
     glassStrong: Colors.white.withValues(alpha: 0.72),
     glassHover: Colors.white.withValues(alpha: 0.86),
-    hairline: Colors.black.withValues(alpha: 0.07),
-    hairlineStrong: Colors.black.withValues(alpha: 0.14),
+    // Stronger than dark's: a black line on paper fades sooner than a
+    // white one on night.
+    hairline: Colors.black.withValues(alpha: 0.1),
+    hairlineStrong: Colors.black.withValues(alpha: 0.18),
     glow: scheme.primary.withValues(alpha: 0.22),
     shadow: Colors.black.withValues(alpha: 0.12),
     accentSoft: scheme.primary.withValues(alpha: 0.12),
-    onAccentSoft: Color.lerp(scheme.primary, Colors.black, 0.25)!,
+    onAccentSoft: AccentPalette.readable(
+      Color.lerp(scheme.primary, Colors.black, 0.25)!,
+      scheme.surface,
+      4.5,
+    ),
     success: const Color(0xFF1F9D62),
     warning: const Color(0xFFB7791F),
     danger: const Color(0xFFC84B4B),
-    muted: scheme.onSurface.withValues(alpha: 0.55),
+    muted: scheme.onSurface.withValues(alpha: 0.64),
     blur: 24,
     workspace: const Color(0xFFDCD7D1),
     checkerLight: const Color(0xFFFFFFFF),

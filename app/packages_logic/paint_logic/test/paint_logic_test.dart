@@ -80,6 +80,9 @@ void main() {
               places: {'tools': Offset(12, -40)},
             ),
             theme: ThemeChoice.light,
+            accent: AccentChoice.custom,
+            customAccent: 0xFF12AB34,
+            language: () => 'pl',
           )
           .withRecent('a.ora')
           .withRecent('b.png');
@@ -98,11 +101,15 @@ void main() {
         'tool': 'laser',
         'jpeg_quality': 900,
         'tool_settings': {'width': 100000, 'flood_mode': 'sideways'},
+        'accent': 'neon',
+        'language': '',
       }, defaults);
       expect(back.tool, defaults.tool);
       expect(back.jpegQuality, defaults.jpegQuality);
       expect(back.toolSettings.width, 500);
       expect(back.toolSettings.floodMode, FloodMode.local);
+      expect(back.accent, AccentChoice.blue);
+      expect(back.language, isNull);
     });
 
     test('the recent files keep eight, newest first, without repeats', () {

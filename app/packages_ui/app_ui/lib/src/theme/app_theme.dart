@@ -1,3 +1,4 @@
+import 'package:app_ui/src/theme/accent_palette.dart';
 import 'package:app_ui/src/theme/app_tokens.dart';
 import 'package:app_ui/src/theme/icon_hues.dart';
 import 'package:flutter/material.dart';
@@ -9,26 +10,38 @@ import 'package:flutter/material.dart';
 /// surface tint, transparent scaffolds. Surfaces come from `GlassPanel`
 /// and the tokens in [AppTokens].
 abstract final class AppTheme {
-  static const Color seed = Color(0xFF5B8DEF);
+  /// The default accent, the blue of [AccentPalette].
+  static const Color seed = AccentPalette.blue;
   static const _sans = 'Manrope';
 
-  static ThemeData dark() => _base(_scheme(Brightness.dark));
+  static ThemeData dark({Color accent = seed}) =>
+      _base(_scheme(Brightness.dark, accent));
 
-  static ThemeData light() => _base(_scheme(Brightness.light));
+  static ThemeData light({Color accent = seed}) =>
+      _base(_scheme(Brightness.light, accent));
+
+  static const _darkSurface = Color(0xFF0E0D10);
+  static const _lightSurface = Color(0xFFF6F3EF);
 
   /// Deep, slightly cool neutrals for dark; warm paper for light. The
-  /// seed drives only the accent roles.
-  static ColorScheme _scheme(Brightness brightness) {
+  /// accent drives only the accent roles: moved toward white on dark and
+  /// toward black on light until it reads against the surface at 3:1, the
+  /// contrast controls need, so a custom colour stays usable.
+  static ColorScheme _scheme(Brightness brightness, Color accent) {
     final seeded = ColorScheme.fromSeed(
-      seedColor: seed,
+      seedColor: accent,
       brightness: brightness,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
     );
     if (brightness == Brightness.dark) {
+      final primary = AccentPalette.readable(
+        Color.lerp(accent, Colors.white, 0.12)!,
+        _darkSurface,
+      );
       return seeded.copyWith(
-        primary: Color.lerp(seed, Colors.white, 0.12),
-        onPrimary: const Color(0xFF0F1117),
-        surface: const Color(0xFF0E0D10),
+        primary: primary,
+        onPrimary: AccentPalette.onAccent(primary),
+        surface: _darkSurface,
         onSurface: const Color(0xFFF1EEEA),
         onSurfaceVariant: const Color(0xFFA9A39D),
         surfaceContainerLowest: const Color(0xFF0A090B),
@@ -40,9 +53,14 @@ abstract final class AppTheme {
         outlineVariant: const Color(0xFF2E2C33),
       );
     }
+    final primary = AccentPalette.readable(
+      Color.lerp(accent, Colors.black, 0.1)!,
+      _lightSurface,
+    );
     return seeded.copyWith(
-      primary: Color.lerp(seed, Colors.black, 0.1),
-      surface: const Color(0xFFF6F3EF),
+      primary: primary,
+      onPrimary: AccentPalette.onAccent(primary),
+      surface: _lightSurface,
       onSurface: const Color(0xFF1B1917),
       onSurfaceVariant: const Color(0xFF5E5852),
       surfaceContainerLowest: const Color(0xFFFFFFFF),
