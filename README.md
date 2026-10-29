@@ -12,7 +12,7 @@ macOS.
 > keep copies of the images you care about. Bug reports and suggestions
 > are welcome on the [Issues](../../issues) page.
 
-![Paintbox with a six-layer night landscape and an elliptical selection around the moon, dark theme](docs/images/en-dark.png)
+![Paintbox with a six-layer night landscape and an elliptical selection around the moon, dark theme](docs/images/night-en-dark.png)
 
 ## Features
 
@@ -43,9 +43,9 @@ macOS.
 - **Appearance and language**: dark or light theme, six accent colors or
   your own, and 25 interface languages.
 
-![The same image in the light theme with a green accent](docs/images/en-light.png)
+![The same image in the light theme with a green accent](docs/images/night-en-light.png)
 
-![The Gaussian Blur dialog previewing on the selected moon](docs/images/en-effect.png)
+![The Gaussian Blur dialog previewing on the selected moon](docs/images/night-en-effect.png)
 
 ## Download
 
