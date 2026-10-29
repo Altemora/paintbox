@@ -646,7 +646,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String sizeTooLarge(int max) {
-    return 'Obraz jest zbyt duży: limit wynosi $max megapikseli.';
+    return 'Obraz jest zbyt duży: limit wynosi $max MP.';
   }
 
   @override
@@ -731,6 +731,13 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get helpMessage =>
       'Edytor obrazów rastrowych z obsługą warstw. Naciśnij literę, aby wybrać narzędzie; ponowne naciśnięcie S, M lub O przełącza między powiązanymi narzędziami. [ i ] zmieniają szerokość pędzla, X zamienia kolory, przytrzymanie spacji przesuwa widok, Ctrl+kółko myszy zmienia powiększenie, a F5–F8 pokazują lub ukrywają okna.';
+
+  @override
+  String get aboutLegal =>
+      '© 2026 autorzy Paintbox. Paintbox jest wolnym oprogramowaniem: możesz je rozpowszechniać i modyfikować na warunkach licencji GNU General Public License w wersji 3 lub późniejszej. Program jest dostarczany bez jakiejkolwiek gwarancji.';
+
+  @override
+  String get licenses => 'Licencje';
 
   @override
   String get settingLineStart => 'Początek';

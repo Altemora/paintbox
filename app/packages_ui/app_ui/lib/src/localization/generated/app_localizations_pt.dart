@@ -733,6 +733,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um editor de imagens raster com camadas. Prima uma letra para escolher uma ferramenta; premir novamente S, M ou O percorre as ferramentas relacionadas. [ e ] alteram a largura do pincel, X troca as cores, manter a barra de espaço premida desloca a vista, Ctrl+roda do rato altera o zoom e F5–F8 mostram ou ocultam as janelas.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 os autores do Paintbox. O Paintbox é software livre: pode redistribuí-lo e modificá-lo nos termos da GNU General Public License, versão 3 ou posterior. É fornecido sem qualquer garantia.';
+
+  @override
+  String get licenses => 'Licenças';
+
+  @override
   String get settingLineStart => 'Início';
 
   @override

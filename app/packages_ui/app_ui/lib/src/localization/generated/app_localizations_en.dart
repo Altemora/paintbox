@@ -244,7 +244,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'move_selection':
           'Drag the selection outline to move it. The pixels stay in place.',
       'ellipse_select': 'Drag to select an ellipse. Hold Shift for a circle.',
-      'zoom': 'Left-click to zoom in, right-click to zoom out, or drag a box to zoom to it.',
+      'zoom': 'Click to magnify, right-click to reduce, or drag a box around the area to magnify.',
       'magic_wand': 'Click a color to select the area around it. Hold Shift to select it across the image.',
       'pan': 'Drag to move the view.',
       'paint_bucket': 'Left-click fills with the primary color, right-click with the secondary.',
@@ -702,7 +702,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String statusZoom(String percent) {
-    return '$percent %';
+    return '$percent%';
   }
 
   @override
@@ -735,6 +735,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get helpMessage =>
       'A raster image editor with layers. Press a letter to choose a tool; pressing S, M or O again cycles through the related tools. [ and ] change the brush width, X swaps the colors, holding Space pans the view, Ctrl+mouse wheel zooms, and F5–F8 show or hide the windows.';
+
+  @override
+  String get aboutLegal =>
+      'Copyright © 2026 the Paintbox authors. Paintbox is free software: you can share and change it under the GNU General Public License, version 3 or later. It comes with absolutely no warranty.';
+
+  @override
+  String get licenses => 'Licenses';
 
   @override
   String get settingLineStart => 'Start';

@@ -738,6 +738,13 @@ class AppLocalizationsCs extends AppLocalizations {
       'Editor rastrových obrázků s vrstvami. Nástroj zvolíte stisknutím písmene; opakované stisknutí S, M nebo O přepíná mezi příbuznými nástroji. [ a ] mění šířku štětce, X prohodí barvy, podržení mezerníku posouvá zobrazení, Ctrl+kolečko myši mění přiblížení a F5–F8 zobrazují nebo skrývají okna.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 autoři Paintboxu. Paintbox je svobodný software: můžete jej šířit a upravovat za podmínek licence GNU General Public License verze 3 nebo novější. Program je poskytován bez jakékoli záruky.';
+
+  @override
+  String get licenses => 'Licence';
+
+  @override
   String get settingLineStart => 'Začátek';
 
   @override

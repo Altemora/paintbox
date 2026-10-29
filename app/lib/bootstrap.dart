@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:paint_logic/paint_logic.dart';
 import 'package:paintbox/app.dart';
 import 'package:paintbox/app_bloc_observer.dart';
+import 'package:paintbox/app_licenses.dart';
 import 'package:paintbox/di.dart';
 import 'package:paintbox/launch_options.dart';
 import 'package:paintbox/screenshot/screenshot_runner.dart';
@@ -28,6 +29,7 @@ Future<void> bootstrap(List<String> args) async {
     return true;
   };
   Bloc.observer = const AppBlocObserver();
+  AppLicenses.register();
   await PaintBridge.load();
   await configureDependencies(options);
   await windowManager.ensureInitialized();

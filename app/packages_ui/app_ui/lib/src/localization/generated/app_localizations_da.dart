@@ -734,6 +734,13 @@ class AppLocalizationsDa extends AppLocalizations {
       'Et program til redigering af rasterbilleder med lag. Tryk på et bogstav for at vælge et værktøj; trykker du på S, M eller O igen, skifter du mellem de beslægtede værktøjer. [ og ] ændrer penselbredden, X bytter farverne, når du holder mellemrumstasten nede, panorerer du visningen, Ctrl+musehjulet zoomer, og F5–F8 viser eller skjuler vinduerne.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 Paintbox\' forfattere. Paintbox er fri software: du må videregive og ændre det under betingelserne i GNU General Public License, version 3 eller nyere. Programmet leveres uden nogen form for garanti.';
+
+  @override
+  String get licenses => 'Licenser';
+
+  @override
   String get settingLineStart => 'Start';
 
   @override

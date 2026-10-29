@@ -5,3 +5,8 @@
 *.png binary
 *.ico binary
 *.ttf binary
+
+# Committed generated code: the bridge bindings and the localizations.
+app/packages_tools/paint_bridge/lib/src/rust/** linguist-generated
+app/packages_tools/paint_bridge/rust/src/frb_generated.rs linguist-generated
+app/packages_ui/app_ui/lib/src/localization/generated/** linguist-generated

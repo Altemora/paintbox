@@ -734,6 +734,13 @@ class AppLocalizationsRo extends AppLocalizations {
       'Un editor de imagini raster cu straturi. Apăsați o literă pentru a alege un instrument; apăsând din nou S, M sau O treceți prin instrumentele înrudite. [ și ] schimbă lățimea pensulei, X schimbă culorile între ele, ținând apăsată tasta Spațiu deplasați vizualizarea, Ctrl+rotița mouse-ului modifică zoomul, iar F5–F8 afișează sau ascund ferestrele.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 autorii Paintbox. Paintbox este software liber: îl puteți redistribui și modifica în condițiile GNU General Public License, versiunea 3 sau ulterioară. Este oferit fără nicio garanție.';
+
+  @override
+  String get licenses => 'Licențe';
+
+  @override
   String get settingLineStart => 'Început';
 
   @override

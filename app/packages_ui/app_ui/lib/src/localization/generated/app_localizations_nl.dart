@@ -734,6 +734,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een rasterafbeeldingseditor met lagen. Druk op een letter om een gereedschap te kiezen; door nogmaals op S, M of O te drukken, doorloopt u de verwante gereedschappen. [ en ] wijzigen de penseelbreedte, X verwisselt de kleuren, met de spatiebalk ingedrukt verschuift u de weergave, Ctrl+muiswiel zoomt en F5–F8 tonen of verbergen de vensters.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 de auteurs van Paintbox. Paintbox is vrije software: u mag het verspreiden en wijzigen onder de voorwaarden van de GNU General Public License, versie 3 of later. Het programma wordt geleverd zonder enige garantie.';
+
+  @override
+  String get licenses => 'Licenties';
+
+  @override
   String get settingLineStart => 'Begin';
 
   @override

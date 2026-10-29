@@ -14,7 +14,7 @@ together. What the tools, keys and menus do is in
 | `Cargo.toml` | The Rust workspace: the core and the bridge. |
 | `crates/paintbox_core` | The core: document, layers, blending, selection, history, tools, adjustments, effects, files. |
 | `app/` | The Flutter program (a melos monorepo) with the bridge to the core. |
-| `tools/` | `check.ps1` (all checks), `package-windows.ps1` (Windows packages), `make-icons.ps1` (the program icon). |
+| `tools/` | `check.ps1` (all checks), `package-windows.ps1` (Windows packages), `make-icons.ps1` (the program icon), `make-notices.ps1` (the Rust crates' license texts). |
 | `packaging/` | Manifests and scripts for the Windows, Linux and macOS packages, and the icons. |
 | `docs/` | This documentation and the README screenshots (`docs/images`). |
 
@@ -119,7 +119,7 @@ windows and menus, 10 for dialogs; the larger steps are only for pills),
 the dense `ControlSize` scale sizes buttons, rows and bars, and
 everything aligns to the `Space` grid.
 
-The layout follows Paint.NET 5. The menus File to Effects are at the
+The arrangement of the window is modeled on Paint.NET 5. The menus File to Effects are at the
 top, with a row of command icons below them (files, clipboard, Crop,
 Deselect, Undo and Redo, pixel grid, rulers). Next to them is the strip
 of image tabs, two rows high: a thumbnail with the name below it,

@@ -737,6 +737,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein Rasterbildeditor mit Ebenen. Drücken Sie einen Buchstaben, um ein Werkzeug zu wählen; erneutes Drücken von S, M oder O wechselt zwischen den zugehörigen Werkzeugen. [ und ] ändern die Pinselbreite, X tauscht die Farben, mit gedrückter Leertaste verschieben Sie die Ansicht, Strg+Mausrad zoomt, und F5–F8 blenden die Fenster ein oder aus.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 die Autoren von Paintbox. Paintbox ist freie Software: Sie können sie unter den Bedingungen der GNU General Public License, Version 3 oder neuer, weitergeben und verändern. Das Programm wird ohne jede Gewährleistung bereitgestellt.';
+
+  @override
+  String get licenses => 'Lizenzen';
+
+  @override
   String get settingLineStart => 'Anfang';
 
   @override

@@ -237,27 +237,27 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String toolHint(String id) {
     String _temp0 = intl.Intl.selectLogic(id, {
-      'rectangle_select': 'Faites glisser pour sélectionner un rectangle. Maintenez Shift enfoncée pour obtenir un carré.',
+      'rectangle_select': 'Faites glisser pour sélectionner un rectangle. Maintenez la touche Maj enfoncée pour obtenir un carré.',
       'move_selected_pixels': 'Faites glisser la sélection pour la déplacer. Faites glisser avec le bouton droit pour la faire pivoter, ou faites glisser les poignées pour la redimensionner. Ctrl laisse une copie ; les touches fléchées la déplacent pas à pas.',
       'lasso_select': 'Faites glisser pour tracer le contour d’une sélection.',
       'move_selection': 'Faites glisser le contour de la sélection pour le déplacer. Les pixels restent en place.',
-      'ellipse_select': 'Faites glisser pour sélectionner une ellipse. Maintenez Shift enfoncée pour obtenir un cercle.',
+      'ellipse_select': 'Faites glisser pour sélectionner une ellipse. Maintenez la touche Maj enfoncée pour obtenir un cercle.',
       'zoom': 'Cliquez avec le bouton gauche pour zoomer, avec le bouton droit pour dézoomer, ou tracez un cadre pour zoomer sur cette zone.',
-      'magic_wand': 'Cliquez sur une couleur pour sélectionner la zone qui l’entoure. Maintenez Shift enfoncée pour la sélectionner dans toute l’image.',
+      'magic_wand': 'Cliquez sur une couleur pour sélectionner la zone qui l’entoure. Maintenez la touche Maj enfoncée pour la sélectionner dans toute l’image.',
       'pan': 'Faites glisser pour déplacer la vue.',
       'paint_bucket': 'Un clic gauche remplit avec la couleur principale, un clic droit avec la couleur secondaire.',
-      'gradient': 'Faites glisser pour tracer un dégradé. Faites glisser les poignées pour l’ajuster ; appuyez sur Enter pour terminer.',
+      'gradient': 'Faites glisser pour tracer un dégradé. Faites glisser les poignées pour l’ajuster ; appuyez sur Entrée pour terminer.',
       'paintbrush': 'Le bouton gauche peint avec la couleur principale, le bouton droit avec la couleur secondaire.',
       'eraser': 'Faites glisser pour effacer jusqu’à la transparence.',
       'pencil': 'Trace des lignes d’un pixel sans anticrénelage.',
       'color_picker': 'Un clic gauche prélève la couleur principale, un clic droit la couleur secondaire.',
       'clone_stamp': 'Faites Ctrl+clic pour définir la source, puis faites glisser pour peindre à partir de celle-ci.',
       'recolor': 'Remplace la couleur secondaire par la couleur principale là où vous peignez. Ctrl+clic prélève une couleur.',
-      'text': 'Cliquez pour placer le curseur, puis saisissez le texte. Faites glisser la poignée ou faites glisser avec le bouton droit pour déplacer le texte ; appuyez sur Esc pour terminer.',
-      'line_curve': 'Faites glisser pour tracer une ligne. Faites glisser les poignées pour la courber ; appuyez sur Enter pour terminer.',
-      'rectangle': 'Faites glisser pour tracer un rectangle. Maintenez Shift enfoncée pour obtenir un carré.',
-      'rounded_rectangle': 'Faites glisser pour tracer un rectangle arrondi. Maintenez Shift enfoncée pour obtenir un carré.',
-      'ellipse': 'Faites glisser pour tracer une ellipse. Maintenez Shift enfoncée pour obtenir un cercle.',
+      'text': 'Cliquez pour placer le curseur, puis saisissez le texte. Faites glisser la poignée ou faites glisser avec le bouton droit pour déplacer le texte ; appuyez sur Échap pour terminer.',
+      'line_curve': 'Faites glisser pour tracer une ligne. Faites glisser les poignées pour la courber ; appuyez sur Entrée pour terminer.',
+      'rectangle': 'Faites glisser pour tracer un rectangle. Maintenez la touche Maj enfoncée pour obtenir un carré.',
+      'rounded_rectangle': 'Faites glisser pour tracer un rectangle arrondi. Maintenez la touche Maj enfoncée pour obtenir un carré.',
+      'ellipse': 'Faites glisser pour tracer une ellipse. Maintenez la touche Maj enfoncée pour obtenir un cercle.',
       'freeform_shape': 'Faites glisser pour tracer une forme libre fermée.',
       'other': '',
     });
@@ -731,6 +731,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get helpMessage =>
       'Un éditeur d’images matricielles avec calques. Appuyez sur une lettre pour choisir un outil ; appuyer de nouveau sur S, M ou O fait défiler les outils apparentés. [ et ] modifient la largeur du pinceau, X permute les couleurs, maintenir la barre d’espace enfoncée déplace la vue, Ctrl+molette de la souris zoome, et F5–F8 affichent ou masquent les fenêtres.';
+
+  @override
+  String get aboutLegal =>
+      '© 2026 les auteurs de Paintbox. Paintbox est un logiciel libre : vous pouvez le redistribuer et le modifier selon les termes de la GNU General Public License, version 3 ou ultérieure. Il est fourni sans aucune garantie.';
+
+  @override
+  String get licenses => 'Licences';
 
   @override
   String get settingLineStart => 'Début';

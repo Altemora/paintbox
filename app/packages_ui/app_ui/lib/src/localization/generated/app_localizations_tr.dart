@@ -739,6 +739,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Katman destekli bir raster görüntü düzenleyicisi. Bir aracı seçmek için harfine basın; S, M veya O tuşuna yeniden basıldığında ilgili araçlar arasında geçiş yapılır. [ ve ] fırça genişliğini değiştirir, X renklerin yerini değiştirir, Boşluk tuşunu basılı tutmak görünümü kaydırır, Ctrl+fare tekerleği yakınlaştırır ve F5–F8 pencereleri gösterir ya da gizler.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 Paintbox yazarları. Paintbox özgür bir yazılımdır: GNU General Public License sürüm 3 veya sonrası koşulları altında dağıtabilir ve değiştirebilirsiniz. Program hiçbir garanti olmaksızın sunulur.';
+
+  @override
+  String get licenses => 'Lisanslar';
+
+  @override
   String get settingLineStart => 'Başlangıç';
 
   @override

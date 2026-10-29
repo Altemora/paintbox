@@ -43,6 +43,7 @@ flutter:
         - asset: assets/fonts/Manrope-Variable.ttf
   assets:
     - assets/fonts/OFL-Manrope.txt
+    - assets/licenses/rust-crates.txt
 
 melos:
   name: paintbox

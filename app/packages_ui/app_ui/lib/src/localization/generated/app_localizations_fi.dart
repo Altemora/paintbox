@@ -739,6 +739,13 @@ class AppLocalizationsFi extends AppLocalizations {
       'Rasterikuvaeditori, jossa on tasot. Valitse työkalu painamalla kirjainta; painamalla S, M tai O uudelleen vaihdat toisiinsa liittyvien työkalujen välillä. [ ja ] muuttavat siveltimen leveyttä, X vaihtaa värit keskenään, välilyönnin pitäminen painettuna panoroi näkymää, Ctrl+hiiren rulla zoomaa ja F5–F8 näyttävät tai piilottavat ikkunat.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 Paintboxin tekijät. Paintbox on vapaa ohjelmisto: voit levittää ja muokata sitä GNU General Public Licensen version 3 tai uudemman ehdoilla. Ohjelmalla ei ole minkäänlaista takuuta.';
+
+  @override
+  String get licenses => 'Lisenssit';
+
+  @override
   String get settingLineStart => 'Alku';
 
   @override

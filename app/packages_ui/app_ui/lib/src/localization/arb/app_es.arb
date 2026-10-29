@@ -133,6 +133,8 @@
   "imagesList": "Imágenes abiertas",
   "helpTitle": "Paintbox",
   "helpMessage": "Un editor de imágenes rasterizadas con capas. Pulse una letra para elegir una herramienta; al pulsar de nuevo S, M u O se recorren las herramientas relacionadas. [ y ] cambian el ancho del pincel, X intercambia los colores, mantener pulsada la barra espaciadora desplaza la vista, Ctrl+rueda del ratón cambia el zoom, y F5–F8 muestran u ocultan las ventanas.",
+  "aboutLegal": "© 2026 los autores de Paintbox. Paintbox es software libre: puede redistribuirlo y modificarlo según los términos de la GNU General Public License, versión 3 o posterior. Se distribuye sin ninguna garantía.",
+  "licenses": "Licencias",
   "settingLineStart": "Inicio",
   "settingLineEnd": "Final",
   "settingDash": "Guiones",

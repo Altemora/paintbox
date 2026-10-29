@@ -133,6 +133,8 @@
   "imagesList": "Otvorené obrázky",
   "helpTitle": "Paintbox",
   "helpMessage": "Editor rastrových obrázkov s vrstvami. Nástroj vyberiete stlačením písmena; opakované stlačenie S, M alebo O prepína medzi príbuznými nástrojmi. [ a ] menia šírku štetca, X vymení farby, podržanie medzerníka posúva zobrazenie, Ctrl+koliesko myši mení priblíženie a F5–F8 zobrazujú alebo skrývajú okná.",
+  "aboutLegal": "© 2026 autori Paintboxu. Paintbox je slobodný softvér: môžete ho šíriť a upravovať za podmienok licencie GNU General Public License verzie 3 alebo novšej. Program sa poskytuje bez akejkoľvek záruky.",
+  "licenses": "Licencie",
   "settingLineStart": "Začiatok",
   "settingLineEnd": "Koniec",
   "settingDash": "Prerušovanie",

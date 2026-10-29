@@ -14,19 +14,19 @@ macOS.
 - **Layers**: add, duplicate, merge, reorder by dragging, hide, and set
   opacity and one of 14 blend modes for each layer.
 - **Selection tools**: rectangle, ellipse, lasso and magic wand, with
-  replace, add, subtract, intersect and invert modes; move the selection
-  or the selected pixels, rotate and scale them.
+  replace, union, exclude, intersect and xor modes; move the selection
+  outline, or move, rotate and scale the selected pixels.
 - **Drawing tools**: paintbrush, pencil, eraser, paint bucket, gradient
   (five kinds), clone stamp, recolor, color picker, text, lines and
   curves with arrowheads and dash styles, rectangles, rounded
   rectangles, ellipses and freeform shapes.
 - **Adjustments**: auto-level, black and white, brightness and contrast,
   curves, hue and saturation, invert colors, levels, posterize and
-  sepia, each with a live preview.
+  sepia; those with settings show a live preview.
 - **31 effects**: artistic (ink sketch, oil painting, pencil sketch),
   blurs (Gaussian, motion, radial, surface, unfocus, zoom, fragment),
   distortions (bulge, dents, frosted glass, pixelate, polar inversion,
-  tile reflection, twist), noise, photo (glow, red-eye removal, sharpen,
+  tile reflection, twist), noise (add noise, median, reduce noise), photo (glow, red-eye removal, sharpen,
   soften portrait), rendering (clouds, Julia and Mandelbrot fractals) and
   stylize (edge detect, emboss, outline, relief).
 - **Files**: OpenRaster (`.ora`) keeps layers; PNG, JPEG, BMP, TGA and
@@ -35,7 +35,7 @@ macOS.
 - **Familiar keys**: tools by letter, `[` and `]` for the brush width,
   `X` to swap colors, Space to pan, Ctrl+wheel to zoom, F5–F8 for the
   windows, and the Paint.NET menu shortcuts.
-- **Your look and language**: dark or light theme, six accent colors or
+- **Appearance and language**: dark or light theme, six accent colors or
   your own, and 25 interface languages.
 
 ![The same image in the light theme with a green accent](docs/images/en-light.png)
@@ -74,7 +74,8 @@ Paintbox is free software under the
 study, share and change it; if you distribute a changed version, you
 must publish its source code under the same license. The licenses of
 the ported code, the font and the libraries are listed in
-[NOTICE.md](NOTICE.md) and [docs/third-party.md](docs/third-party.md).
+[NOTICE.md](NOTICE.md) and [docs/third-party.md](docs/third-party.md);
+the program shows them all under Help > Licenses.
 
 ## Thanks
 

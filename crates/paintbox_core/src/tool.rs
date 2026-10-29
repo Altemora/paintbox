@@ -121,41 +121,26 @@ impl Tool {
 
     /// The status bar hint.
     pub fn hint(self) -> &'static str {
+        // The same words as the English interface (app_en.arb).
         match self {
-            Tool::RectangleSelect => {
-                "Drag to select a rectangle. Shift keeps it square."
-            }
-            Tool::MoveSelectedPixels => {
-                "Drag the selection to move it. Hold Ctrl to leave a copy. Arrow keys nudge."
-            }
+            Tool::RectangleSelect => "Drag to select a rectangle. Hold Shift for a square.",
+            Tool::MoveSelectedPixels => "Drag the selection to move it. Drag with the right button to rotate it, drag the handles to scale it. Ctrl leaves a copy; the arrow keys nudge it.",
             Tool::LassoSelect => "Drag to draw the outline of a selection.",
-            Tool::MoveSelection => "Drag the selection outline to move it. The pixels stay.",
-            Tool::EllipseSelect => {
-                "Drag to select an ellipse. Shift keeps it round."
-            }
-            Tool::Zoom => {
-                "Left click to zoom in, right click to zoom out, drag a rectangle to zoom to it."
-            }
-            Tool::MagicWand => "Click a color to select the area around it. Shift selects it across the image.",
+            Tool::MoveSelection => "Drag the selection outline to move it. The pixels stay in place.",
+            Tool::EllipseSelect => "Drag to select an ellipse. Hold Shift for a circle.",
+            Tool::Zoom => "Click to magnify, right-click to reduce, or drag a box around the area to magnify.",
+            Tool::MagicWand => "Click a color to select the area around it. Hold Shift to select it across the image.",
             Tool::Pan => "Drag to move the view.",
-            Tool::PaintBucket => {
-                "Left click fills with the primary color, right click with the secondary."
-            }
-            Tool::Gradient => {
-                "Drag to draw a gradient. Drag the handles to adjust it, Enter to finish."
-            }
-            Tool::Paintbrush => {
-                "Left button paints with the primary color, right with the secondary."
-            }
+            Tool::PaintBucket => "Left-click fills with the primary color, right-click with the secondary.",
+            Tool::Gradient => "Drag to draw a gradient. Drag the handles to adjust it; press Enter to finish.",
+            Tool::Paintbrush => "The left button paints with the primary color, the right button with the secondary.",
             Tool::Eraser => "Drag to erase to transparency.",
             Tool::Pencil => "Draws one-pixel lines without antialiasing.",
-            Tool::ColorPicker => "Left click sets the primary color, right click the secondary.",
+            Tool::ColorPicker => "Left-click picks the primary color, right-click the secondary.",
             Tool::CloneStamp => "Ctrl+click to set the source, then drag to paint from it.",
-            Tool::Recolor => {
-                "Replaces the secondary color with the primary where you paint. Ctrl+click picks."
-            }
-            Tool::Text => "Click to place the cursor, then type. Drag the handle or with the right button to move it.",
-            Tool::LineCurve => "Drag to draw a line. Drag the handles to bend it, Enter to finish.",
+            Tool::Recolor => "Replaces the secondary color with the primary where you paint. Ctrl+click picks a color.",
+            Tool::Text => "Click to place the cursor, then type. Drag the handle or drag with the right button to move the text; press Esc to finish.",
+            Tool::LineCurve => "Drag to draw a line. Drag the handles to bend it; press Enter to finish.",
             Tool::Rectangle => "Drag to draw a rectangle. Hold Shift for a square.",
             Tool::RoundedRectangle => "Drag to draw a rounded rectangle. Hold Shift for a square.",
             Tool::Ellipse => "Drag to draw an ellipse. Hold Shift for a circle.",

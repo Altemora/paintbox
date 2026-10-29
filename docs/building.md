@@ -94,7 +94,8 @@ draws the icon (a blue tile, a white brush stroke and a yellow drop) and
 writes every size: `app/windows/runner/resources/app_icon.ico`, the
 macOS `AppIcon` set, and `packaging/icons` for MSIX and Linux. Finished
 packages go to `dist/`, which git ignores. Every package carries
-`LICENSE`, `NOTICE.md` and `LICENSES/`.
+`LICENSE`, `NOTICE.md` and `LICENSES/`; the program itself shows every
+license text under Help > Licenses.
 
 ### Windows
 

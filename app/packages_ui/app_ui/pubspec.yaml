@@ -1,5 +1,5 @@
 name: app_ui
-description: Presentation base - the theme and tokens, glass surfaces, toasts, dialogs, ActionListener, gen-l10n (uk, en).
+description: Presentation base - the theme and tokens, glass surfaces, toasts, dialogs, ActionListener, gen-l10n (English template and 24 translations).
 publish_to: 'none'
 version: 0.1.0
 resolution: workspace

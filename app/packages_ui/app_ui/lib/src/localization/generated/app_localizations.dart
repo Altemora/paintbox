@@ -297,7 +297,7 @@ abstract class AppLocalizations {
   /// No description provided for @toolHint.
   ///
   /// In en, this message translates to:
-  /// **'{id, select, rectangle_select{Drag to select a rectangle. Hold Shift for a square.} move_selected_pixels{Drag the selection to move it. Drag with the right button to rotate it, drag the handles to scale it. Ctrl leaves a copy; the arrow keys nudge it.} lasso_select{Drag to draw the outline of a selection.} move_selection{Drag the selection outline to move it. The pixels stay in place.} ellipse_select{Drag to select an ellipse. Hold Shift for a circle.} zoom{Left-click to zoom in, right-click to zoom out, or drag a box to zoom to it.} magic_wand{Click a color to select the area around it. Hold Shift to select it across the image.} pan{Drag to move the view.} paint_bucket{Left-click fills with the primary color, right-click with the secondary.} gradient{Drag to draw a gradient. Drag the handles to adjust it; press Enter to finish.} paintbrush{The left button paints with the primary color, the right button with the secondary.} eraser{Drag to erase to transparency.} pencil{Draws one-pixel lines without antialiasing.} color_picker{Left-click picks the primary color, right-click the secondary.} clone_stamp{Ctrl+click to set the source, then drag to paint from it.} recolor{Replaces the secondary color with the primary where you paint. Ctrl+click picks a color.} text{Click to place the cursor, then type. Drag the handle or drag with the right button to move the text; press Esc to finish.} line_curve{Drag to draw a line. Drag the handles to bend it; press Enter to finish.} rectangle{Drag to draw a rectangle. Hold Shift for a square.} rounded_rectangle{Drag to draw a rounded rectangle. Hold Shift for a square.} ellipse{Drag to draw an ellipse. Hold Shift for a circle.} freeform_shape{Drag to draw a closed freeform shape.} other{}}'**
+  /// **'{id, select, rectangle_select{Drag to select a rectangle. Hold Shift for a square.} move_selected_pixels{Drag the selection to move it. Drag with the right button to rotate it, drag the handles to scale it. Ctrl leaves a copy; the arrow keys nudge it.} lasso_select{Drag to draw the outline of a selection.} move_selection{Drag the selection outline to move it. The pixels stay in place.} ellipse_select{Drag to select an ellipse. Hold Shift for a circle.} zoom{Click to magnify, right-click to reduce, or drag a box around the area to magnify.} magic_wand{Click a color to select the area around it. Hold Shift to select it across the image.} pan{Drag to move the view.} paint_bucket{Left-click fills with the primary color, right-click with the secondary.} gradient{Drag to draw a gradient. Drag the handles to adjust it; press Enter to finish.} paintbrush{The left button paints with the primary color, the right button with the secondary.} eraser{Drag to erase to transparency.} pencil{Draws one-pixel lines without antialiasing.} color_picker{Left-click picks the primary color, right-click the secondary.} clone_stamp{Ctrl+click to set the source, then drag to paint from it.} recolor{Replaces the secondary color with the primary where you paint. Ctrl+click picks a color.} text{Click to place the cursor, then type. Drag the handle or drag with the right button to move the text; press Esc to finish.} line_curve{Drag to draw a line. Drag the handles to bend it; press Enter to finish.} rectangle{Drag to draw a rectangle. Hold Shift for a square.} rounded_rectangle{Drag to draw a rounded rectangle. Hold Shift for a square.} ellipse{Drag to draw an ellipse. Hold Shift for a circle.} freeform_shape{Drag to draw a closed freeform shape.} other{}}'**
   String toolHint(String id);
 
   /// No description provided for @paramName.
@@ -891,7 +891,7 @@ abstract class AppLocalizations {
   /// No description provided for @statusZoom.
   ///
   /// In en, this message translates to:
-  /// **'{percent} %'**
+  /// **'{percent}%'**
   String statusZoom(String percent);
 
   /// No description provided for @statusOpening.
@@ -941,6 +941,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A raster image editor with layers. Press a letter to choose a tool; pressing S, M or O again cycles through the related tools. [ and ] change the brush width, X swaps the colors, holding Space pans the view, Ctrl+mouse wheel zooms, and F5–F8 show or hide the windows.'**
   String get helpMessage;
+
+  /// The legal notice under the help: copyright, license, no warranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Copyright © 2026 the Paintbox authors. Paintbox is free software: you can share and change it under the GNU General Public License, version 3 or later. It comes with absolutely no warranty.'**
+  String get aboutLegal;
+
+  /// No description provided for @licenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get licenses;
 
   /// No description provided for @settingLineStart.
   ///

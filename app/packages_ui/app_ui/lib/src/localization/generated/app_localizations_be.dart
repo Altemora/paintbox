@@ -645,7 +645,7 @@ class AppLocalizationsBe extends AppLocalizations {
 
   @override
   String sizeTooLarge(int max) {
-    return 'Відарыс завялікі: найбольшы памер — $max мегапікселяў.';
+    return 'Відарыс завялікі: найбольшы памер — $max Мп.';
   }
 
   @override
@@ -730,6 +730,13 @@ class AppLocalizationsBe extends AppLocalizations {
   @override
   String get helpMessage =>
       'Рэдактар растравых відарысаў з пластамі. Каб выбраць інструмент, націсніце літару; паўторнае націсканне S, M або O пераключае роднасныя інструменты. [ і ] змяняюць шырыню пэндзля, X мяняе колеры месцамі, утрыманне прабелу зрушвае выгляд, Ctrl+кола мышы змяняе маштаб, а F5–F8 паказваюць і хаваюць вокны.';
+
+  @override
+  String get aboutLegal =>
+      '© 2026 аўтары Paintbox. Paintbox — свабоднае праграмнае забеспячэнне: яго можна распаўсюджваць і змяняць на ўмовах GNU General Public License версіі 3 або навейшай. Праграма пастаўляецца без аніякіх гарантый.';
+
+  @override
+  String get licenses => 'Ліцэнзіі';
 
   @override
   String get settingLineStart => 'Пачатак';

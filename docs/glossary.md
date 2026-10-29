@@ -57,7 +57,10 @@ Style rules for every language:
 | Levels, Curves | Рівні, Криві | |
 | Hue / Saturation | Відтінок / насиченість | |
 | Brightness / Contrast | Яскравість / контраст | |
-| Invert Colors | Інвертувати кольори | |
+| Invert Colors | Інверсія кольорів | An Adjustments item; the menus of adjustments and effects use nouns. |
+| Edit (menu) | Редагування | |
+| Gamma | Гамма | |
+| Hue, Saturation, Value (HSV) | Відтінок, Насиченість, Яскравість (В, Н, Я) | |
 | Auto-Level | Автоматичні рівні | |
 | Gaussian Blur | Розмиття Гаусса | "Розмиття" for every blur. |
 | Noise | Шум | Add Noise: "Додавання шуму"; Reduce Noise: "Зменшення шуму". |

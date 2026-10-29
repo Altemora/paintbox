@@ -21,7 +21,7 @@ pubspec_overrides.yaml
 # Screenshots the program writes outside docs/images
 /screenshots/
 
-# Local assistant settings
+# Local tool settings
 
 # OS and editors
 .DS_Store

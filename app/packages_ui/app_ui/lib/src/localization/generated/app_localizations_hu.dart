@@ -732,6 +732,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Rétegeket kezelő raszteres képszerkesztő. Egy eszközt a betűjének lenyomásával választhat ki; az S, M vagy O ismételt lenyomása végiglépked a rokon eszközökön. A [ és a ] módosítja az ecset szélességét, az X felcseréli a színeket, a Szóköz lenyomva tartásával a nézet mozgatható, a Ctrl+egérgörgő nagyít, az F5–F8 pedig megjeleníti vagy elrejti az ablakokat.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 a Paintbox szerzői. A Paintbox szabad szoftver: a GNU General Public License 3. vagy későbbi változatának feltételei szerint terjeszthető és módosítható. A programhoz semmilyen garancia nem tartozik.';
+
+  @override
+  String get licenses => 'Licencek';
+
+  @override
   String get settingLineStart => 'Kezdet';
 
   @override

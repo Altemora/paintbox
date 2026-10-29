@@ -133,6 +133,8 @@
   "imagesList": "Atvērtie attēli",
   "helpTitle": "Paintbox",
   "helpMessage": "Rastra attēlu redaktors ar slāņiem. Rīku izvēlas, nospiežot tā burtu; atkārtoti nospiežot S, M vai O, tiek pārslēgti radniecīgie rīki. [ un ] maina otas platumu, X samaina krāsas, turot nospiestu atstarpes taustiņu, var pārvietot skatu, Ctrl+peles ritenītis maina tālummaiņu, bet F5–F8 parāda vai paslēpj logus.",
+  "aboutLegal": "© 2026 Paintbox autori. Paintbox ir brīvā programmatūra: to drīkst izplatīt un mainīt saskaņā ar GNU General Public License 3. vai jaunākas versijas noteikumiem. Programma tiek nodrošināta bez jebkādas garantijas.",
+  "licenses": "Licences",
   "settingLineStart": "Sākums",
   "settingLineEnd": "Beigas",
   "settingDash": "Svītrojums",

@@ -9,7 +9,8 @@ a choice ("A OR B"), Paintbox uses the GPL-compatible option (MIT or
 Apache 2.0). The ported algorithms, the font and Cargokit are covered in
 [NOTICE.md](../NOTICE.md).
 
-The lists come from these commands; regenerate them after changing
+The full license texts ship inside the program (Help > Licenses);
+`tools/make-notices.ps1` collects those of the Rust crates. The lists come from these commands; regenerate them after changing
 dependencies:
 
 ```

@@ -733,6 +733,13 @@ class AppLocalizationsLv extends AppLocalizations {
       'Rastra attēlu redaktors ar slāņiem. Rīku izvēlas, nospiežot tā burtu; atkārtoti nospiežot S, M vai O, tiek pārslēgti radniecīgie rīki. [ un ] maina otas platumu, X samaina krāsas, turot nospiestu atstarpes taustiņu, var pārvietot skatu, Ctrl+peles ritenītis maina tālummaiņu, bet F5–F8 parāda vai paslēpj logus.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 Paintbox autori. Paintbox ir brīvā programmatūra: to drīkst izplatīt un mainīt saskaņā ar GNU General Public License 3. vai jaunākas versijas noteikumiem. Programma tiek nodrošināta bez jebkādas garantijas.';
+
+  @override
+  String get licenses => 'Licences';
+
+  @override
   String get settingLineStart => 'Sākums';
 
   @override

@@ -730,6 +730,13 @@ class AppLocalizationsEt extends AppLocalizations {
       'Kihtidega rastergraafikaredaktor. Tööriista valimiseks vajutage tähte; S, M või O uuesti vajutamine vahetab seotud tööriistu. [ ja ] muudavad pintsli laiust, X vahetab värvid, tühikuklahvi all hoides saate vaadet liigutada, Ctrl+hiireratas muudab suurendust ning F5–F8 näitavad või peidavad aknaid.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 Paintboxi autorid. Paintbox on vaba tarkvara: seda võib levitada ja muuta GNU General Public License’i versiooni 3 või uuema tingimustel. Programmil puudub igasugune garantii.';
+
+  @override
+  String get licenses => 'Litsentsid';
+
+  @override
   String get settingLineStart => 'Algus';
 
   @override

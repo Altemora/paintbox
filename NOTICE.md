@@ -11,9 +11,12 @@ Paintbox is written from scratch in Rust and Dart. Some of its
 algorithms and much of its behaviour are ported from two MIT-licensed
 programs, and it ships a font and third-party libraries under their own
 permissive licenses. Each is listed below with what Paintbox takes from
-it. MIT, BSD, Apache 2.0, Zlib, Unicode and OFL 1.1 terms are compatible
-with the GPL version 3: the combined program is distributed under the
-GPL, and the notices below stay with it.
+it. The MIT, BSD, Apache 2.0, Zlib and Unicode licenses of the code are
+compatible with the GPL version 3: the combined program is distributed
+under the GPL, and the notices below stay with it. The font is not part
+of the program's code: it is distributed alongside it, unmodified, under
+its own SIL Open Font License 1.1, which allows bundling and embedding
+it with software under any license.
 
 "Paint.NET" is a trademark of its owner. Paintbox is not affiliated with
 or endorsed by Paint.NET or Pinta, and does not use their names for
@@ -49,7 +52,8 @@ copied):
 Not used: the Paint.NET logo and icon artwork, its "resource assets"
 (`.resx` and `.png` resources: icons, menu and status bar texts) and the
 General Polygon Clipper; all three are outside the MIT grant. Paintbox's
-icons are drawn anew and its interface texts are written anew.
+icons are drawn anew. The names of commands, tools and effects follow
+Paint.NET's; the hints, messages and dialog texts are written anew.
 
 ```
 Paint.NET
@@ -134,4 +138,8 @@ or Apache 2.0, [LICENSES/Cargokit.txt](LICENSES/Cargokit.txt).
 ## Libraries
 
 Rust crates and Dart packages the program links, with their licenses:
-[docs/third-party.md](docs/third-party.md).
+[docs/third-party.md](docs/third-party.md). The full license texts and
+copyright lines travel inside the program and are shown by Help >
+Licenses: Flutter collects those of the Dart packages, and
+`app/assets/licenses/rust-crates.txt` (written by
+`tools/make-notices.ps1`) holds those of the Rust crates.

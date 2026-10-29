@@ -21,7 +21,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get menuFile => 'Файл';
 
   @override
-  String get menuEdit => 'Правка';
+  String get menuEdit => 'Редагування';
 
   @override
   String get menuView => 'Вигляд';
@@ -65,7 +65,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'blue': 'Синій',
       'green': 'Зелений',
       'amber': 'Бурштиновий',
-      'purple': 'Пурпуровий',
+      'purple': 'Фіолетовий',
       'red': 'Червоний',
       'gray': 'Сірий',
       'custom': 'Інший…',
@@ -141,7 +141,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'adjust_brightness_contrast': 'Яскравість / контраст…',
       'adjust_curves': 'Криві…',
       'adjust_hue_saturation': 'Відтінок / насиченість…',
-      'adjust_invert_colors': 'Інвертувати кольори',
+      'adjust_invert_colors': 'Інверсія кольорів',
       'adjust_levels': 'Рівні…',
       'adjust_posterize': 'Постеризація…',
       'adjust_sepia': 'Сепія',
@@ -237,31 +237,32 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String toolHint(String id) {
     String _temp0 = intl.Intl.selectLogic(id, {
-      'rectangle_select':
-          'Протягніть, щоб виділити прямокутник. Shift дає квадрат.',
-      'move_selected_pixels': 'Перетягніть виділене, щоб перемістити. Протяжка правою кнопкою повертає, ручки масштабують. Ctrl лишає копію, стрілки зсувають.',
+      'rectangle_select': 'Протягніть, щоб виділити прямокутник. Утримуйте Shift, щоб отримати квадрат.',
+      'move_selected_pixels': 'Перетягніть виділене, щоб перемістити його. Перетягування правою кнопкою повертає, ручки масштабують. З Ctrl залишається копія, клавіші зі стрілками зсувають виділене.',
       'lasso_select': 'Протягніть, щоб обвести виділення.',
       'move_selection':
           'Перетягніть контур виділення. Пікселі лишаються на місці.',
-      'ellipse_select': 'Протягніть, щоб виділити еліпс. Shift дає коло.',
-      'zoom': 'Ліве клацання наближає, праве віддаляє, рамка наближає до виділеної ділянки.',
+      'ellipse_select':
+          'Протягніть, щоб виділити еліпс. Утримуйте Shift, щоб отримати коло.',
+      'zoom': 'Ліве клацання наближає, праве віддаляє; обведіть ділянку рамкою, щоб наблизити її.',
       'magic_wand': 'Клацніть колір, щоб виділити ділянку навколо нього. Shift виділяє його по всьому зображенню.',
-      'pan': 'Перетягніть, щоб зсунути вигляд.',
+      'pan': 'Перетягніть, щоб прокрутити зображення.',
       'paint_bucket':
           'Ліве клацання заливає основним кольором, праве — додатковим.',
       'gradient': 'Протягніть, щоб намалювати градієнт. Ручки його змінюють, Enter завершує.',
       'paintbrush': 'Ліва кнопка малює основним кольором, права — додатковим.',
       'eraser': 'Протягніть, щоб стерти до прозорого.',
       'pencil': 'Малює лінії в один піксель без згладжування.',
-      'color_picker': 'Ліве клацання бере основний колір, праве — додатковий.',
+      'color_picker':
+          'Ліве клацання вибирає основний колір, праве — додатковий.',
       'clone_stamp':
           'Ctrl+клацання задає джерело, далі протягніть, щоб малювати з нього.',
-      'recolor': 'Замінює додатковий колір основним там, де ви малюєте. Ctrl+клацання бере колір.',
-      'text': 'Клацніть, щоб поставити курсор, і друкуйте. Ручка чи протяжка правою кнопкою рухає текст, Esc завершує.',
+      'recolor': 'Замінює додатковий колір основним там, де ви малюєте. Ctrl+клацання вибирає колір.',
+      'text': 'Клацніть, щоб поставити курсор, і введіть текст. Ручка чи перетягування правою кнопкою переміщують текст, Esc завершує.',
       'line_curve': 'Протягніть, щоб намалювати лінію. Ручки її вигинають, Enter завершує.',
-      'rectangle': 'Протягніть, щоб намалювати прямокутник. Shift дає квадрат.',
-      'rounded_rectangle': 'Протягніть, щоб намалювати заокруглений прямокутник. Shift дає квадрат.',
-      'ellipse': 'Протягніть, щоб намалювати еліпс. Shift дає коло.',
+      'rectangle': 'Протягніть, щоб намалювати прямокутник. Утримуйте Shift, щоб отримати квадрат.',
+      'rounded_rectangle': 'Протягніть, щоб намалювати заокруглений прямокутник. Утримуйте Shift, щоб отримати квадрат.',
+      'ellipse': 'Протягніть, щоб намалювати еліпс. Утримуйте Shift, щоб отримати коло.',
       'freeform_shape': 'Протягніть, щоб намалювати замкнену довільну фігуру.',
       'other': '',
     });
@@ -292,11 +293,11 @@ class AppLocalizationsUk extends AppLocalizations {
       'red': 'Червоний',
       'green': 'Зелений',
       'blue': 'Синій',
-      'input_low': 'Вхід: темне',
-      'input_high': 'Вхід: світле',
-      'output_low': 'Вихід: темне',
-      'output_high': 'Вихід: світле',
-      'gamma': 'Гама',
+      'input_low': 'Вхідний мінімум',
+      'input_high': 'Вхідний максимум',
+      'output_low': 'Вихідний мінімум',
+      'output_high': 'Вихідний максимум',
+      'gamma': 'Гамма',
       'ink_outline': 'Контур тушшю',
       'coloring': 'Забарвлення',
       'tip_size': 'Розмір вістря',
@@ -435,7 +436,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get colorsAlpha => 'Альфа';
 
   @override
-  String get colorsHue => 'Т';
+  String get colorsHue => 'В';
 
   @override
   String get colorsSat => 'Н';
@@ -525,7 +526,7 @@ class AppLocalizationsUk extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'linear': 'Лінійний',
       'linearReflected': 'Лінійний дзеркальний',
-      'diamond': 'Ромб',
+      'diamond': 'Ромбічний',
       'radial': 'Радіальний',
       'conical': 'Конічний',
       'other': '',
@@ -555,7 +556,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get settingAfterPick => 'Після вибору кольору';
 
   @override
-  String get pickStay => 'Лишити цей інструмент';
+  String get pickStay => 'Залишити цей інструмент';
 
   @override
   String get pickPrevious => 'Перейти до попереднього інструмента';
@@ -587,7 +588,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get historyNewImage => 'Нове зображення';
 
   @override
-  String get historyOpenImage => 'Відкрите зображення';
+  String get historyOpenImage => 'Відкриття зображення';
 
   @override
   String get layerVisible => 'Показати чи сховати шар';
@@ -617,7 +618,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get dontSave => 'Не зберігати';
 
   @override
-  String get keepCanvas => 'Лишити полотно';
+  String get keepCanvas => 'Залишити полотно';
 
   @override
   String get expandCanvas => 'Збільшити полотно';
@@ -648,7 +649,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String sizeTooLarge(int max) {
-    return 'Зображення завелике: найбільший розмір — $max мегапікселів.';
+    return 'Зображення завелике: найбільший розмір — $max Мп.';
   }
 
   @override
@@ -656,7 +657,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String unsavedMessage(String name) {
-    return '«$name» має незбережені зміни.';
+    return 'Зміни в «$name» не збережено.';
   }
 
   @override
@@ -732,7 +733,14 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get helpMessage =>
-      'Редактор растрових зображень із шарами. Інструмент вибирають літерою; повторне натискання S, M чи O перемикає споріднені інструменти. [ і ] змінюють ширину пензля, X міняє кольори місцями, утримуваний пробіл зсуває вигляд, Ctrl+коліщатко миші змінює масштаб, а F5–F8 показують і ховають вікна.';
+      'Редактор растрових зображень із шарами. Інструмент вибирають літерою; повторне натискання S, M чи O перемикає споріднені інструменти. [ і ] змінюють ширину пензля, X міняє кольори місцями, утримуючи пробіл, можна прокручувати зображення, Ctrl+коліщатко миші змінює масштаб, а F5–F8 показують і ховають вікна.';
+
+  @override
+  String get aboutLegal =>
+      '© 2026 автори Paintbox. Paintbox — вільне програмне забезпечення: його можна поширювати й змінювати на умовах GNU General Public License версії 3 або новішої. Програма постачається без жодних гарантій.';
+
+  @override
+  String get licenses => 'Ліцензії';
 
   @override
   String get settingLineStart => 'Початок';
@@ -741,7 +749,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get settingLineEnd => 'Кінець';
 
   @override
-  String get settingDash => 'Штрих';
+  String get settingDash => 'Тип штриха';
 
   @override
   String get settingSwapSize => 'Поміняти ширину й висоту';

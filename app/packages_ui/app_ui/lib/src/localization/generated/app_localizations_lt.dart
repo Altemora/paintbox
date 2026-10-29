@@ -646,7 +646,7 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String sizeTooLarge(int max) {
-    return 'Paveikslėlis per didelis: riba yra $max megapikselių.';
+    return 'Paveikslėlis per didelis: riba yra $max MP.';
   }
 
   @override
@@ -732,6 +732,13 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get helpMessage =>
       'Rastrinių paveikslėlių rengyklė su sluoksniais. Įrankį pasirinksite paspaudę jo raidę; pakartotinai spaudžiant S, M arba O perjungiami susiję įrankiai. [ ir ] keičia teptuko plotį, X sukeičia spalvas, laikant nuspaustą tarpo klavišą stumiamas rodinys, Ctrl+pelės ratukas keičia mastelį, o F5–F8 rodo arba slepia langus.';
+
+  @override
+  String get aboutLegal =>
+      '© 2026 Paintbox autoriai. Paintbox yra laisvoji programinė įranga: ją galite platinti ir keisti pagal GNU General Public License 3 arba vėlesnės versijos sąlygas. Programa teikiama be jokių garantijų.';
+
+  @override
+  String get licenses => 'Licencijos';
 
   @override
   String get settingLineStart => 'Pradžia';

@@ -735,6 +735,13 @@ class AppLocalizationsSv extends AppLocalizations {
       'En rasterbildredigerare med lager. Tryck på en bokstav för att välja ett verktyg; trycker du på S, M eller O igen växlar du mellan de närliggande verktygen. [ och ] ändrar penselbredden, X byter plats på färgerna, när du håller ned blanksteg panorerar du vyn, Ctrl+mushjulet zoomar och F5–F8 visar eller döljer fönstren.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 Paintbox upphovspersoner. Paintbox är fri programvara: du får sprida och ändra den enligt villkoren i GNU General Public License, version 3 eller senare. Programmet levereras utan någon som helst garanti.';
+
+  @override
+  String get licenses => 'Licenser';
+
+  @override
   String get settingLineStart => 'Början';
 
   @override

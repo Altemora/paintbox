@@ -739,6 +739,13 @@ class AppLocalizationsHr extends AppLocalizations {
       'Uređivač rasterskih slika sa slojevima. Alat birate pritiskom na njegovo slovo; ponovnim pritiskom na S, M ili O izmjenjuju se srodni alati. [ i ] mijenjaju širinu kista, X zamjenjuje boje, držanjem razmaknice pomiče se prikaz, Ctrl+kotačić miša zumira, a F5–F8 prikazuju ili skrivaju prozore.';
 
   @override
+  String get aboutLegal =>
+      '© 2026 autori Paintboxa. Paintbox je slobodan softver: možete ga dijeliti i mijenjati pod uvjetima licencije GNU General Public License, verzije 3 ili novije. Program se isporučuje bez ikakvog jamstva.';
+
+  @override
+  String get licenses => 'Licencije';
+
+  @override
   String get settingLineStart => 'Početak';
 
   @override

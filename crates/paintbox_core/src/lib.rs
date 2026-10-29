@@ -1,5 +1,5 @@
 //! Paintbox core: the editing engine of a Paint.NET 3.x-style image
-//! editor, with no UI toolkit, game or engine dependency. Behaviour and
+//! editor, with no UI toolkit dependency. Behaviour and
 //! the reasons behind it: `docs/behaviour.md`.
 //!
 //! # For a shell

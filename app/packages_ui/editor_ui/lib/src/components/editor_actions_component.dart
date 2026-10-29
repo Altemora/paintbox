@@ -151,12 +151,43 @@ class EditorActionsComponent extends StatelessWidget {
           ),
         );
       case ShowHelpAction():
+        // The keys, then the notice GPL 3 asks an interactive program to
+        // show: the copyright, no warranty, the license and the licenses
+        // of what the program is built from.
         unawaited(
-          AppDialogs.ask<void>(
+          AppDialogs.show<void>(
             context,
-            title: words.helpTitle,
-            message: words.helpMessage,
-            choices: [DialogChoice(words.ok, null, primary: true)],
+            builder: (context) => AppDialogs.card(
+              context,
+              title: words.helpTitle,
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(words.helpMessage),
+                  const SizedBox(height: Space.sm),
+                  Text(
+                    words.aboutLegal,
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: context.tokens.muted),
+                  ),
+                ],
+              ),
+              actions: [
+                OutlinedButton(
+                  onPressed: () => showLicensePage(
+                    context: context,
+                    applicationName: words.appTitle,
+                  ),
+                  child: Text(words.licenses),
+                ),
+                FilledButton(
+                  autofocus: true,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(words.ok),
+                ),
+              ],
+            ),
           ),
         );
     }
