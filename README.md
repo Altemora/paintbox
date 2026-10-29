@@ -7,6 +7,11 @@ It works the way Paint.NET 3.x does, with layers, the familiar tools and
 the same keyboard shortcuts, and it is built to run on Windows, Linux and
 macOS.
 
+> **Alpha.** Paintbox is at an early stage: the features below work, but
+> they have had little real use yet, so expect rough edges and bugs, and
+> keep copies of the images you care about. Bug reports and suggestions
+> are welcome on the [Issues](../../issues) page.
+
 ![Paintbox with a two-layer image and an elliptical selection, dark theme](docs/images/en-dark.png)
 
 ## Features
@@ -44,11 +49,11 @@ macOS.
 
 ## Download
 
-Ready-made builds are published on the [Releases](../../releases) page.
+Alpha builds are published on the [Releases](../../releases) page.
 
 | Platform | Package | Status |
 |---|---|---|
-| Windows 10 and 11 (x64) | Portable zip, MSIX, installer | Ready |
+| Windows 10 and 11 (x64) | Portable zip, MSIX, installer | Alpha |
 | Linux (x64) | AppImage | In progress |
 | macOS (Apple silicon and Intel) | Signed app in a dmg | In progress |
 
