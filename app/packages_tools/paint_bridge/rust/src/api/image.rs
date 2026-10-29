@@ -127,13 +127,15 @@ impl PaintImage {
             .collect()
     }
 
-    /// The layers as they are, for writing on a worker.
+    /// The layers as they are, for writing on a worker. The active layer
+    /// goes with them: OpenRaster keeps it, so the file opens on it.
     #[frb(sync)]
     pub fn snapshot(&self) -> PaintResult<ImageSnapshot> {
         let doc = self.session.document();
         let layers = doc.layers().to_vec();
-        let doc = pb::Document::with_layers(doc.width(), doc.height(), layers, "Save")?;
-        Ok(ImageSnapshot { doc })
+        let mut copy = pb::Document::with_layers(doc.width(), doc.height(), layers, "Save")?;
+        copy.set_active_layer(doc.active_layer_index())?;
+        Ok(ImageSnapshot { doc: copy })
     }
 
     /// The image as it is now counts as saved.

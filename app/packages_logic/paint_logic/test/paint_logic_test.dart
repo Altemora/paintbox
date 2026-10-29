@@ -135,29 +135,36 @@ void main() {
       secondary: Rgba8(r: 255, g: 255, b: 255, a: 255),
     );
 
-    test('a saved image opens again with its layers', () async {
-      final repo = ImagesRepository();
-      final blank = repo.createBlank(
-        width: 32,
-        height: 24,
-        background: const Rgba8(r: 255, g: 255, b: 255, a: 255),
-        colors: colors,
-      );
-      expect(blank.untitledNumber, 1);
-      blank.image.run(id: 'add_layer');
-      expect(blank.image.stamp().isModified, isTrue);
-      final path = p.join(dir.path, 'two.ora');
-      final saved = await repo.save(blank.id, path, jpegQuality: 95);
-      expect(saved.path, path);
-      expect(blank.image.stamp().isModified, isFalse);
-      final opened = await repo.open(path, colors);
-      expect(opened.image.layers().length, 2);
-      expect(repo.byPath(path)?.id, isNotNull);
-      repo
-        ..close(blank.id)
-        ..close(opened.id);
-      expect(repo.images, isEmpty);
-    });
+    test(
+      'a saved image opens again with its layers and active layer',
+      () async {
+        final repo = ImagesRepository();
+        final blank = repo.createBlank(
+          width: 32,
+          height: 24,
+          background: const Rgba8(r: 255, g: 255, b: 255, a: 255),
+          colors: colors,
+        );
+        expect(blank.untitledNumber, 1);
+        blank.image
+          ..run(id: 'add_layer')
+          ..setActiveLayer(index: 0);
+        expect(blank.image.stamp().isModified, isTrue);
+        final path = p.join(dir.path, 'two.ora');
+        final saved = await repo.save(blank.id, path, jpegQuality: 95);
+        expect(saved.path, path);
+        expect(blank.image.stamp().isModified, isFalse);
+        final opened = await repo.open(path, colors);
+        expect(opened.image.layers().length, 2);
+        // The Background was active when saved, and the file keeps that.
+        expect(opened.image.stamp().activeLayer, 0);
+        expect(repo.byPath(path)?.id, isNotNull);
+        repo
+          ..close(blank.id)
+          ..close(opened.id);
+        expect(repo.images, isEmpty);
+      },
+    );
 
     test('an unreadable file is a failure, not a crash', () async {
       final path = p.join(dir.path, 'broken.png');
