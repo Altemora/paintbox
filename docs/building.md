@@ -1,17 +1,17 @@
-# Paintbox: збірка, запуск і пакування
+# Paintbox: building, checking and packaging
 
-Як зібрати програму з джерел, запустити перевірки, зробити знімки вікна
-й пакунки для Windows, Linux і macOS. Будова програми —
+This page explains how to build the program from source, run the checks,
+take screenshots of the window and make packages for Windows, Linux and
+macOS. How the program is put together is in
 [architecture.md](architecture.md).
 
-## Збірка і запуск
+## Build and run
 
-Потрібні Flutter 3.47 (Dart 3.13), стабільний Rust з `rustup` і, для
-зміни моста, `flutter_rust_bridge_codegen` 2.13.0
-(`cargo install flutter_rust_bridge_codegen --version 2.13.0`). Ядро
-збирається разом із програмою: cargokit, підключений до плагіна
-`paint_bridge`, викликає cargo під час `flutter build`, окремого кроку
-немає.
+You need Flutter 3.47 (Dart 3.13) and stable Rust from `rustup`. To
+change the bridge you also need `flutter_rust_bridge_codegen` 2.13.0
+(`cargo install flutter_rust_bridge_codegen --version 2.13.0`). There is
+no separate step for the core: Cargokit, attached to the `paint_bridge`
+plugin, runs cargo during `flutter build`.
 
 ```
 cd app
@@ -20,21 +20,29 @@ flutter run -d windows
 flutter build windows --release
 ```
 
-Зібрана програма — `app/build/windows/x64/runner/Release/paintbox.exe` з
-`paintbox_bridge.dll` поруч. Аргументи командного рядка — файли, які
-відкрити.
+The release build is `app/build/windows/x64/runner/Release/paintbox.exe`
+with `paintbox_bridge.dll` next to it. Command-line arguments are files
+to open.
 
-### Перевірка
+The generated code is committed, so a plain build needs neither code
+generator: the bridge bindings (`lib/src/rust` and
+`rust/src/frb_generated.rs` in `paint_bridge`) and the localizations
+(`lib/src/localization/generated` in `app_ui`). After changing
+`packages_tools/paint_bridge/rust/src/api`, run `melos run gen:bridge`;
+after changing an arb file, run `melos run gen:l10n`.
+
+## Checks
 
 ```
 tools/check.ps1 [-Build]
 ```
 
-Скрипт робить `cargo fmt --check`, `cargo clippy -D warnings`,
-`cargo test` для воркспейсу, збирає міст для тестів Flutter, потім у
-`app/` — `flutter pub get`, `dart analyze --fatal-infos`, перевірку
-формату й `flutter test` пакетів, що мають тести; з `-Build` — ще й
-`flutter build windows --release`. Вручну те саме:
+The script runs `cargo fmt --check`, `cargo clippy -D warnings` and
+`cargo test` for the workspace and builds the bridge library the Flutter
+tests load. Then, in `app/`, it runs `flutter pub get`,
+`dart analyze --fatal-infos`, the format check and `flutter test` for
+every package with tests. With `-Build` it also runs
+`flutter build windows --release`. The same by hand:
 
 ```
 cargo build -p paintbox_bridge
@@ -44,84 +52,92 @@ melos run format:check
 melos run test
 ```
 
-Тести пакетів вантажать міст, зібраний cargo в `target/` кореня
-(`BridgeLoader` у теці `test`): блоки й репозиторії перевіряються на
-справжньому ядрі, а не на заглушці.
+The package tests load the bridge that cargo built in the repository's
+`target/` folder (`BridgeLoader` in each `test` folder), so blocs and
+repositories are tested against the real core rather than a stand-in.
 
-Після зміни `packages_tools/paint_bridge/rust/src/api` — `melos run
-gen:bridge` (кодоген переписує `lib/src/rust` і `rust/src/frb_generated.rs`),
-після зміни arb — `melos run gen:l10n`.
-
-### Знімки
+## Screenshots
 
 ```
-paintbox --screenshot=<шлях.png> [--scene=<назва>]
+paintbox --screenshot=<path.png> [--scene=<name>] [--theme=dark|light]
+         [--accent=blue|green|amber|purple|red|gray] [--language=<code>]
 ```
 
-Програма відтворює сцени тими самими подіями, що й ввід користувача,
-зберігає `<шлях>-<сцена>.png` і закривається. Сцени: `empty` — порожнє
-полотно; `layers` — файл OpenRaster з двома шарами (градієнт і шар з
-мазком та еліпсом, намальовані інструментами ядра), відкритий так само,
-як File > Open, і еліптичне виділення, протягнуте вказівником; `effect`
-— діалог Gaussian Blur з переглядом на виділенні; `text`, `lines`,
-`transform` — Text, кінці й штрихи ліній, повернутий фрагмент; `effects`
-— знімок на кожен ефект; `compact` — Colors у режимі Less і панель Text;
-`strips` — панель параметрів кожного роду інструментів
-(`strip-<інструмент>`). У режимі знімків
-налаштування не читаються й не пишуться, буфер обміну — пам'ять процесу,
-мова — українська.
+The program plays scenes through the same events as user input, saves
+`<path>-<scene>.png` for each and quits. Without `--scene` it plays all
+of them.
 
-## Кросплатформеність і пакування
+| Scene | What it shows |
+|---|---|
+| `empty` | The blank image the program starts with. |
+| `layers` | An OpenRaster file with two layers (a gradient, and a stroke with an ellipse drawn by the core's tools), opened the way File > Open opens it, with an elliptical selection dragged by the pointer. |
+| `effect` | The Gaussian Blur dialog previewing on the selection. |
+| `text`, `lines`, `transform` | The Text tool; line ends and dash styles; a rotated fragment. |
+| `effects` | One picture per effect. |
+| `compact` | The Colors window in Less mode and the Text tool's settings. |
+| `strips` | The tool bar of each kind of tool (`strip-<tool>`). |
 
-Платформозалежного коду поза плагінами (`window_manager`,
-`file_selector`, `pasteboard`, `desktop_drop`) і cargokit немає; вигляд
-однаковий на всіх платформах, системні лише вікно і його панель.
-Ідентифікатор програми — `dev.paintbox.Paintbox` (Linux `APPLICATION_ID`,
-macOS `PRODUCT_BUNDLE_IDENTIFIER`, назва .desktop і AppStream); назва
-вікна й пакунків — Paintbox. Значок малює `tools/make-icons.ps1`
-(синя плитка, біла смуга пензля, жовта крапля) і записує всі розміри:
-`app/windows/runner/resources/app_icon.ico`, набір `AppIcon` для macOS,
-`packaging/icons` для MSIX і Linux. Готові пакунки лягають у `dist/`
-(у `.gitignore`).
+Screenshots neither read nor write the user's settings, and the
+clipboard is kept in memory. The theme, accent and language come from
+the options: dark, blue and English by default. The screenshots in the
+README are made this way into `docs/images`.
+
+## Packaging
+
+There is no platform-specific code outside the plugins
+(`window_manager`, `file_selector`, `pasteboard`, `desktop_drop`) and
+Cargokit, and the program looks the same on every platform. The
+application ID is `dev.paintbox.Paintbox` (Linux `APPLICATION_ID`, macOS
+`PRODUCT_BUNDLE_IDENTIFIER`, the .desktop and AppStream names); the
+window and the packages are called Paintbox. `tools/make-icons.ps1`
+draws the icon (a blue tile, a white brush stroke and a yellow drop) and
+writes every size: `app/windows/runner/resources/app_icon.ico`, the
+macOS `AppIcon` set, and `packaging/icons` for MSIX and Linux. Finished
+packages go to `dist/`, which git ignores. Every package carries
+`LICENSE`, `NOTICE.md` and `LICENSES/`.
 
 ### Windows
 
 ```
-tools/package-windows.ps1 [-SkipBuild] [-CertificatePath <pfx> -CertificatePassword <пароль> -Publisher "CN=..."]
+tools/package-windows.ps1 [-SkipBuild] [-CertificatePath <pfx> -CertificatePassword <password> -Publisher "CN=..."]
 ```
 
-Скрипт збирає `flutter build windows --release` (стандартний раннер не
-відкриває консоль: вона з'являється лише під налагоджувачем), прибирає з
-копії `data/flutter_assets/kernel_blob.bin` (ядро Dart, яке налагоджувальний
-запуск лишає в спільній теці ресурсів; release виконує AOT `app.so`) і
-робить:
+The script runs `flutter build windows --release` (the standard runner
+opens no console; one appears only under a debugger) and removes
+`data/flutter_assets/kernel_blob.bin` from its copy. That file is the
+Dart kernel a debug run leaves in the shared assets folder; a release
+runs the AOT `app.so` instead. It then makes:
 
-- **переносний zip** `Paintbox-<версія>-windows-x64.zip` — тека збірки як
-  є (`paintbox.exe`, `paintbox_bridge.dll`, `flutter_windows.dll`,
-  плагіни, `data`), записаний `tar` (стандартні `/` у назвах, на відміну від
-  `Compress-Archive` Windows PowerShell); розпакувати й запустити.
-- **MSIX** `Paintbox-<версія>-windows-x64.msix` через `makeappx` з Windows
-  SDK: маніфест `packaging/windows/AppxManifest.xml` (повна довіра,
-  асоціації .ora, .png, .jpg, .bmp, .tga, .webp; плитки зі значка).
-  **Без підпису** Windows його не встановить. Для підпису потрібен
-  сертифікат підпису коду (.pfx) з темою, що збігається з `Publisher`
-  маніфесту: від центру сертифікації (OV/EV, для розповсюдження) або
-  власний для своїх машин (`New-SelfSignedCertificate -Type CodeSigningCert
-  -Subject "CN=Paintbox"`, тоді його треба додати в «Довірені особи» машини);
-  скрипт підписує `signtool` з тієї ж теки SDK з позначкою часу (підпис
-  лишається чинним після закінчення сертифіката), коли передано
-  `-CertificatePath`. Для Microsoft Store підписує сам Store.
-- **інсталятор Inno Setup** `Paintbox-<версія>-windows-x64-setup.exe` за
-  `packaging/windows/paintbox.iss` — лише коли Inno Setup 6
-  встановлено (`winget install JRSoftware.InnoSetup`); інакше крок
-  пропускається з повідомленням. Інсталятор ставить для поточного
-  користувача без прав адміністратора (діалог пропонує й для всіх),
-  ярлик у меню «Пуск», за бажанням — на робочому столі й асоціацію .ora.
-  Непідписаний інсталятор SmartScreen зустрічає попередженням; підпис —
-  той самий сертифікат (`signtool sign` над готовим .exe або
-  `SignTool=` у сценарії).
+- **A portable zip**, `Paintbox-<version>-windows-x64.zip`: the build
+  folder as it is (`paintbox.exe`, `paintbox_bridge.dll`,
+  `flutter_windows.dll`, the plugins, `data`), written with Windows' own
+  `tar` so that entry names use the standard `/` (Windows PowerShell's
+  `Compress-Archive` writes `\`). Unpack it and run.
+- **An MSIX**, `Paintbox-<version>-windows-x64.msix`, made with
+  `makeappx` from the Windows SDK and the manifest
+  `packaging/windows/AppxManifest.xml` (full trust; associations for
+  .ora, .png, .jpg, .bmp, .tga and .webp; tiles from the icon). Windows
+  does not install an **unsigned** MSIX. Signing needs a code-signing
+  certificate (.pfx) whose subject matches the manifest's `Publisher`:
+  one from a certificate authority (OV or EV) for distribution, or a
+  self-signed one for your own machines
+  (`New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Paintbox"`,
+  added to the machine's Trusted People). Given `-CertificatePath`, the
+  script signs with `signtool` from the same SDK folder and a timestamp,
+  so the signature stays valid after the certificate expires. The
+  Microsoft Store signs packages itself.
+- **An Inno Setup installer**, `Paintbox-<version>-windows-x64-setup.exe`,
+  from `packaging/windows/paintbox.iss`, only when Inno Setup 6 is
+  installed (`winget install JRSoftware.InnoSetup`); otherwise the step
+  is skipped with a message. The installer shows the license, installs
+  for the current user without administrator rights (its dialog also
+  offers all users), adds a Start menu shortcut and optionally a desktop
+  shortcut and the .ora association. SmartScreen warns about an unsigned
+  installer; sign it with the same certificate (`signtool sign` on the
+  finished .exe, or `SignTool=` in the script).
 
-Версія береться з `pubspec.yaml` (`0.1.0+1` → MSIX `0.1.0.1`).
+The version comes from `app/pubspec.yaml` (`0.1.0+1` becomes MSIX
+`0.1.0.1`).
 
 ### Linux
 
@@ -129,58 +145,65 @@ tools/package-windows.ps1 [-SkipBuild] [-CertificatePath <pfx> -CertificatePassw
 packaging/linux/build-appimage.sh
 ```
 
-Скрипт збирає `flutter build linux --release` і пакує AppImage
-`Paintbox-<версія>-linux-<арх>.AppImage` через `linuxdeploy` (завантажує
-його в `dist/tools`, якщо змінна `LINUXDEPLOY` не вказує на
-власний), з .desktop і AppStream-описом з `packaging/linux` і
-значками hicolor 48–512; linuxdeploy береться з гілки `continuous`
-(для відтворюваної збірки — закріпити версію в `LINUXDEPLOY`). Для збірки потрібні Flutter 3.47 для Linux,
-Rust, `clang`, `cmake`, `ninja-build`, `pkg-config`, `libgtk-3-dev`
-(їх же беруть `window_manager` і `screen_retriever`), `curl`; для
-запуску — GTK 3 (`libgtk-3-0`), `libglib2.0-0`, `libstdc++6`, а AppImage —
-ще `libfuse2` (або `--appimage-extract-and-run`). Бібліотеки GTK
-лишаються системними (скрипт виключає GTK, GDK, Pango, Cairo, ATK,
-HarfBuzz, epoxy: без середовища плагіна GTK вкладені вони ламаються на
-інших дистрибутивах), `.so` плагінів і
-`libpaintbox_bridge.so` їдуть у пакунку. `file_selector` показує діалог
-GTK. `pasteboard` на Linux не пише зображення в буфер (лише читає):
-копіювати в чужі програми там не вийде, доки плагін не замінено
-(кандидат — `super_clipboard`). Перетягування файлів під Wayland і
-нормування колеса — перевірити на справжній машині.
+The script runs `flutter build linux --release` and packs the AppImage
+`Paintbox-<version>-linux-<arch>.AppImage` with `linuxdeploy`, which it
+downloads into `dist/tools` unless the `LINUXDEPLOY` variable points to
+one. The package gets the .desktop file and the AppStream description
+from `packaging/linux` and hicolor icons from 48 to 512 pixels.
+linuxdeploy comes from its `continuous` release; pin a version through
+`LINUXDEPLOY` for a reproducible build.
 
-**Не виконано**: на машині розробки немає Linux із Flutter (у WSL видно
-лише Windows-Flutter через `/mnt/c`, без `clang`), тож скрипт написано,
-але не запущено.
+Building needs Flutter 3.47 for Linux, Rust, `clang`, `cmake`,
+`ninja-build`, `pkg-config`, `libgtk-3-dev` (which `window_manager` and
+`screen_retriever` also need) and `curl`. Running needs GTK 3
+(`libgtk-3-0`), `libglib2.0-0` and `libstdc++6`, and the AppImage also
+needs `libfuse2` (or `--appimage-extract-and-run`). The GTK libraries
+stay the system's: the script excludes GTK, GDK, Pango, Cairo, ATK,
+HarfBuzz and epoxy, because bundled copies break on other distributions
+without the GTK plugin environment. The plugins' `.so` files and
+`libpaintbox_bridge.so` travel in the package.
+
+On Linux, `file_selector` shows the GTK dialog. `pasteboard` cannot
+write images to the clipboard there (it only reads them), so copying
+into other programs does not work until the plugin is replaced
+(`super_clipboard` is a candidate). Dropping files under Wayland and
+mouse wheel scaling still need checking on a real machine.
+
+**Not yet run**: the script is written but has not been run, because no
+Linux machine with Flutter has been available.
 
 ### macOS
 
 ```
-SIGN_IDENTITY="Developer ID Application: <ім'я> (<team id>)" NOTARY_PROFILE=paintbox packaging/macos/package-macos.sh
+SIGN_IDENTITY="Developer ID Application: <name> (<team id>)" NOTARY_PROFILE=paintbox packaging/macos/package-macos.sh
 ```
 
-Скрипт збирає `flutter build macos --release` (`Paintbox.app`; cargokit
-будує ядро через `build_pod.sh` для обох архітектур і вшиває його
-статичною бібліотекою у `paint_bridge.framework` — потрібні Xcode і
-`rustup target add aarch64-apple-darwin x86_64-apple-darwin`), підписує
-зсередини назовні (`find -depth`: вкладене раніше за фреймворк, потім
-програму) з hardened
-runtime і `Release.entitlements`, надсилає zip на нотаризацію
-(`xcrun notarytool submit --wait`), пришиває квиток (`stapler staple`) і
-робить zip та dmg. Без `SIGN_IDENTITY` зупиняється після збірки.
-Потрібні: обліковий запис Apple Developer, сертифікат «Developer ID
-Application» у зв'язці ключів і профіль `notarytool store-credentials`.
+The script runs `flutter build macos --release`, which produces
+`Paintbox.app`: Cargokit builds the core through `build_pod.sh` for both
+architectures and links it as a static library into
+`paint_bridge.framework`. This needs Xcode and
+`rustup target add aarch64-apple-darwin x86_64-apple-darwin`. The script
+then signs from the inside out (`find -depth`: nested items before their
+framework, then the app) with the hardened runtime and
+`Release.entitlements`, submits a zip for notarization
+(`xcrun notarytool submit --wait`), staples the ticket
+(`stapler staple`) and makes a zip and a dmg. Without `SIGN_IDENTITY` it
+stops after the build. You need an Apple Developer account, a "Developer
+ID Application" certificate in the keychain and a profile from
+`notarytool store-credentials`.
 
-Entitlements (`macos/Runner/*.entitlements`): без пісочниці. Програма
-поширюється з Developer ID, а не через Mac App Store, тож пісочниця не
-потрібна, а з нею збереження не працювало б: файл пишеться поруч як
-`<назва>.part` і перейменовується, а пісочниця дає доступ лише до самого
-вибраного файлу, не до теки; «Нещодавні файли» після перезапуску теж
-вимагали б security-scoped bookmarks. Hardened runtime для нотаризації —
-з параметрів `codesign`. У DebugProfile лишаються `allow-jit` і
-`network.server` для налагодження Flutter. Для Mac App Store знадобились
-би пісочниця, `files.user-selected.read-write`, запис на місці замість
-`.part` і закладки для нещодавніх файлів.
-Ctrl у клавішах програми на macOS зараховує й Cmd.
+The entitlements (`macos/Runner/*.entitlements`) have no sandbox. The
+program is distributed with a Developer ID rather than through the Mac
+App Store, so the sandbox is not required, and with it saving would not
+work: a file is written next to its target as `<name>.part` and then
+renamed, while the sandbox grants access only to the chosen file, not to
+its folder. Recent files would also need security-scoped bookmarks after
+a restart. The hardened runtime for notarization comes from the
+`codesign` options. DebugProfile keeps `allow-jit` and `network.server`
+for Flutter debugging. The Mac App Store would need the sandbox,
+`files.user-selected.read-write`, writing in place instead of through
+`.part`, and bookmarks for recent files. On macOS, Ctrl in the program's
+shortcuts also accepts Cmd.
 
-**Не виконано**: машини з macOS немає — скрипт і документ, без запуску.
-
+**Not yet run**: the script is written but has not been run, because no
+Mac has been available.

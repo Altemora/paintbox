@@ -1,627 +1,675 @@
-# Paintbox: поведінка редактора
+# Paintbox: editor behaviour
 
-Paintbox — кросплатформна програма для малювання на кшталт Paint.NET
-3.x: шари, ті самі інструменти, гарячі клавіші й поведінка. Ядро
-(`crates/paintbox_core`) не має інтерфейсу; оболонка — програма на
-Flutter (`app/`).
+This document describes the behaviour that the core reproduces and the
+program shows. The core code is the source of truth; this page explains
+how each part works and why it was built that way.
 
-Ця сторінка описує поведінку, яку відтворює ядро і програма. Джерело
-істини — код ядра; тут пояснено, як річ влаштована і чому.
+Paintbox is a cross-platform raster image editor in the spirit of
+Paint.NET 3.x, with layers and the same tools, keyboard shortcuts and
+behaviour. The core (`crates/paintbox_core`) has no user interface; the
+front end is a Flutter program (`app/`). See
+[architecture.md](architecture.md) for how the parts fit together,
+[building.md](building.md) for building, and
+[../CONTRIBUTING.md](../CONTRIBUTING.md) for contributing.
 
-## Джерела
+## Sources
 
 - **OpenPDN** ([github.com/rivy/OpenPDN](https://github.com/rivy/OpenPDN))
-  — відкритий код Paint.NET 3.36.7 під MIT. Головне джерело: формули
-  змішування, алгоритми коригувань і ефектів, модифікатори
-  інструментів, гарячі клавіші меню.
+  is the source code of Paint.NET 3.36.7, released under the MIT
+  license. It is the primary reference for blend formulas, adjustment
+  and effect algorithms, tool modifiers and menu shortcuts.
 - **Pinta** ([github.com/PintaProject/Pinta](https://github.com/PintaProject/Pinta))
-  — живий клон Paint.NET на C#/GTK під MIT; другорядне джерело для
-  перевірки алгоритмів і переліку ефектів, а його українська
-  локалізація — довідник термінів.
+  is an actively maintained Paint.NET clone written in C# with GTK,
+  also under MIT. It is a secondary reference for checking algorithms
+  and the list of effects, and its Ukrainian localization serves as a
+  terminology reference.
 
-Ліцензії обох і перелік перенесеного — [NOTICE.md](../NOTICE.md).
+Both licenses and the list of what was carried over are in
+[NOTICE.md](../NOTICE.md).
 
-Не беремо: іконки й курсори Paint.NET (не під MIT), бібліотеку General
-Polygon Clipper (не під MIT; виділення в нас — маска, тож вона й не
-потрібна), назву «Paint.NET» (торгова марка). Код обох проєктів лише
-читається як довідка; жоден їхній файл не входить у збірку.
+Paintbox does not take Paint.NET's icons and cursors (they are not
+under MIT), the General Polygon Clipper library (not under MIT, and not
+needed because our selection is a mask), or the name "Paint.NET" (a
+trademark). The code of both projects is only read as a reference; none
+of their files are part of the build.
 
-## Модель документа
+## Document model
 
-Документ — полотно фіксованого розміру, стос растрових шарів, активний
-шар, виділення, два кольори користувача й історія. Новий документ
-Paint.NET — 800 × 600 з одним шаром «Background», залитим білим; новий
-шар прозорий.
+A document consists of a fixed-size canvas, a stack of raster layers,
+an active layer, a selection, the two user colors and a history. A new
+document in Paint.NET is 800 × 600 with a single layer named
+"Background" filled with white; a new layer is transparent.
 
-| Частина | Що зберігає |
+| Part | What it holds |
 |---|---|
-| Шар | Пікселі RGBA8 розміру полотна, назва, видимість, прозорість 0–255, режим змішування. |
-| Стос | Нижній шар — індекс 0. Порядок у вікні Layers — зверху вниз. |
-| Активний шар | Шар, на якому малюють інструменти й діють коригування та ефекти. |
-| Виділення | Маска покриття 0–255 на піксель полотна і ознака «є виділення». Без виділення інструменти, коригування й ефекти діють на весь шар, а команди Copy, Cut, Erase, Fill, Invert і Deselect вимкнені. |
-| Кольори | Основний (primary, типово чорний) і додатковий (secondary, типово білий), RGBA. |
-| Історія | Кроки дій із Undo/Redo. |
+| Layer | RGBA8 pixels the size of the canvas, a name, visibility, opacity 0–255 and a blend mode. |
+| Stack | The bottom layer has index 0. The Layers window lists layers from top to bottom. |
+| Active layer | The layer that tools paint on and that adjustments and effects apply to. |
+| Selection | A coverage mask with a value of 0–255 for each canvas pixel, plus a flag that says whether a selection exists. With no selection, tools, adjustments and effects act on the whole layer, and the Copy, Cut, Erase, Fill, Invert and Deselect commands are disabled. |
+| Colors | The primary color (black by default) and the secondary color (white by default), both RGBA. |
+| History | The steps of past actions, with Undo and Redo. |
 
-### Формат пікселів
+### Pixel format
 
-Пікселі зберігаються **straight RGBA8** (колір не помножено на альфу),
-як `ColorBgra` у Paint.NET. Причини:
+Pixels are stored as **straight RGBA8** (color not premultiplied by
+alpha), like `ColorBgra` in Paint.NET. The reasons are:
 
-- формули режимів змішування Paint.NET записані для straight-альфи;
-  перенесені дослівно, вони дають той самий результат до одиниці;
-- коригування (рівні, криві, тон) працюють із кольором пікселя без
-  ділення на альфу, як у джерелі;
-- PNG і ORA зберігають straight-альфу, тож читання й запис — без
-  перетворень і без втрати точності в напівпрозорих пікселях.
+- Paint.NET's blend mode formulas are written for straight alpha;
+  ported literally, they give the same result to within one unit.
+- Adjustments (Levels, Curves, Hue / Saturation) work with the pixel's
+  color without dividing by alpha, as in the source.
+- PNG and ORA store straight alpha, so reading and writing need no
+  conversion and lose no precision in semi-transparent pixels.
 
-Ціна — ділення на сумарну альфу при змішуванні; ядро робить його цілими
-числами. Розмиття, що усереднюють сусідів, зважують колір альфою
-(як `ColorBgra.Blend` у джерелі), щоб прозорі пікселі не темнили край.
+The cost is a division by the combined alpha during blending, which the
+core does in integer arithmetic. Blurs that average neighbouring pixels
+weight color by alpha (like `ColorBgra.Blend` in the source) so that
+transparent pixels do not darken edges.
 
-## Шари
+## Layers
 
-### Властивості
+### Properties
 
-| Властивість | Діапазон | Поведінка |
+| Property | Range | Behaviour |
 |---|---|---|
-| Назва | рядок | «Layer N» для нового (N = кількість шарів + 1, тож назва може повторитись), «Background» для першого; копія лишає назву оригіналу. |
-| Видимість | так/ні | Невидимий шар не бере участі в композиції й плоскому збереженні. Сховати активний шар — активним стає найближчий видимий. |
-| Тло | так/ні | Ознака шару Background (курсив у вікні Layers): Canvas Size заливає нову площу такого шару додатковим кольором, а не прозорістю. Копія й імпорт ознаку знімають. |
-| Прозорість | 0–255 | Множить альфу пікселів шару перед змішуванням. |
-| Режим змішування | 14 режимів | Див. нижче. |
+| Name | string | A new layer is named "Layer N", where N is the number of layers + 1, so names can repeat. The first layer is named "Background". A duplicate keeps the name of the original. |
+| Visible | yes/no | A hidden layer takes no part in compositing or in flat saving. Hiding the active layer makes the nearest visible layer active. |
+| Background | yes/no | Marks the Background layer (shown in italics in the Layers window). Canvas Size fills new area of such a layer with the secondary color instead of transparency. Duplicating and importing clear the flag. |
+| Opacity | 0–255 | Multiplies the alpha of the layer's pixels before blending. |
+| Blend mode | 14 modes | See below. |
 
-Діалог властивостей шару (F4, подвійне клацання) показує зміни наживо
-й записує один крок історії на OK. Прапорець видимості у вікні Layers
-теж записує крок.
+The Layer Properties dialog (F4, or double-click a layer) shows changes
+live and records a single history step on OK. The visibility check box
+in the Layers window also records a step.
 
-### Команди шарів
+### Layer commands
 
-| Команда | Клавіша | Поведінка |
+| Command | Key | Behaviour |
 |---|---|---|
-| Add New Layer | Ctrl+Shift+N | Прозорий шар над активним, стає активним. |
-| Delete Layer | Ctrl+Shift+Delete | Видаляє активний; останній шар видалити не можна. |
-| Duplicate Layer | Ctrl+Shift+D | Копія над активним, з тими ж властивостями. |
-| Merge Layer Down | Ctrl+M | Змішує активний з нижнім за режимом і прозорістю активного; результат — нижній шар зі своїми властивостями. |
-| Import From File | — | Зображення з файлу стає новим шаром з назвою файлу (у лівому верхньому куті); якщо воно більше за полотно, пропонується збільшити полотно. |
-| Flip Horizontal / Vertical | — | Віддзеркалює активний шар. |
-| Rotate / Zoom | — | Поворот, масштаб і зсув шару (відкладено, див. «Рішення»). |
-| Move Layer Up / Down | кнопки вікна | Міняє шар із сусіднім. |
-| Layer Properties | F4 | Діалог властивостей. |
+| Add New Layer | Ctrl+Shift+N | Adds a transparent layer above the active one and makes it active. |
+| Delete Layer | Ctrl+Shift+Delete | Deletes the active layer; the last remaining layer cannot be deleted. |
+| Duplicate Layer | Ctrl+Shift+D | Adds a copy above the active layer with the same properties. |
+| Merge Layer Down | Ctrl+M | Blends the active layer onto the layer below using the active layer's blend mode and opacity; the result is the lower layer, which keeps its own properties. |
+| Import From File | — | The image from a file becomes a new layer named after the file, placed at the top-left corner. If the image is larger than the canvas, the program offers to enlarge the canvas. |
+| Flip Horizontal / Vertical | — | Mirrors the active layer. |
+| Rotate / Zoom | — | Rotates, scales and offsets the layer (deferred; see "Open items"). |
+| Move Layer Up / Down | window buttons | Swaps the layer with its neighbour. |
+| Layer Properties | F4 | Opens the properties dialog. |
 
-### Композиція і режими змішування
+### Compositing and blend modes
 
-Композиція йде знизу вгору: результат починається прозорим, кожен
-видимий шар змішується на нього своїм режимом. Оболонка малює під
-результатом шахівницю.
+Compositing runs from the bottom up: the result starts transparent, and
+each visible layer is blended onto it with its own blend mode. The
+front end draws a checkerboard under the result.
 
-Позначення: `B` — нижній (накопичений) піксель, `S` — піксель шару,
-канали 0–255, `a_S = S.a · opacity / 255`. Загальна формула Paint.NET
-(`UserBlendOps.Generated.H.cs`, макрос `BLEND`) для кожного каналу
-кольору:
+Notation: `B` is the lower (accumulated) pixel, `S` is the layer pixel,
+channels are 0–255, and `a_S = S.a · opacity / 255`. Paint.NET's
+general formula (`UserBlendOps.Generated.H.cs`, the `BLEND` macro) for
+each color channel is:
 
 ```
-y = a_B · (255 − a_S) / 255        частка, де видно лише низ
-x = a_B · a_S / 255                частка, де змішуються обидва
-z = a_S − x                        частка, де видно лише шар
-a = y + a_S                        альфа результату
-c = (B.c · y + S.c · z + F(B.c, S.c) · x) / a      (a = 0 → прозорий)
+y = a_B · (255 − a_S) / 255        share where only the lower pixel shows
+x = a_B · a_S / 255                share where both are blended
+z = a_S − x                        share where only the layer shows
+a = y + a_S                        alpha of the result
+c = (B.c · y + S.c · z + F(B.c, S.c) · x) / a      (a = 0 → transparent)
 ```
 
-Множення `p · q / 255` — `INT_SCALE`: `((p·q + 128) >> 8 + p·q + 128) >> 8`.
-Функція змішування `F(A, B)`, де `A` — нижній, `B` — шар:
+The product `p · q / 255` is `INT_SCALE`:
+`((p·q + 128) >> 8 + p·q + 128) >> 8`. The blend function `F(A, B)`,
+where `A` is the lower pixel and `B` is the layer pixel, is:
 
-| Режим | `F(A, B)` |
+| Mode | `F(A, B)` |
 |---|---|
 | Normal | `B` |
 | Multiply | `A · B / 255` |
 | Additive | `min(255, A + B)` |
-| Color Burn | `B = 0 → 0`, інакше `max(0, 255 − (255 − A) · 255 / B)` |
-| Color Dodge | `B = 255 → 255`, інакше `min(255, A · 255 / (255 − B))` |
-| Reflect | `B = 255 → 255`, інакше `min(255, A² / (255 − B))` |
-| Glow | Reflect з переставленими аргументами: `F(B, A)` |
-| Overlay | `A < 128 → 2A · B / 255`, інакше `255 − 2(255 − A)(255 − B) / 255` |
+| Color Burn | `B = 0 → 0`, otherwise `max(0, 255 − (255 − A) · 255 / B)` |
+| Color Dodge | `B = 255 → 255`, otherwise `min(255, A · 255 / (255 − B))` |
+| Reflect | `B = 255 → 255`, otherwise `min(255, A² / (255 − B))` |
+| Glow | Reflect with the arguments swapped: `F(B, A)` |
+| Overlay | `A < 128 → 2A · B / 255`, otherwise `255 − 2(255 − A)(255 − B) / 255` |
 | Difference | `|B − A|` |
 | Negation | `255 − |255 − A − B|` |
 | Lighten | `max(A, B)` |
 | Darken | `min(A, B)` |
 | Screen | `A + B − A · B / 255` |
-| Xor | `A xor B` (побітово) |
+| Xor | `A xor B` (bitwise) |
 
-Ділення у Color Burn, Color Dodge і Reflect — цілочисельне (у джерелі
-через таблицю магічних множників `masTable`, результат той самий).
+The divisions in Color Burn, Color Dodge and Reflect are integer
+divisions. The source performs them through a table of magic
+multipliers (`masTable`); the result is the same.
 
-### Брудні прямокутники
+### Dirty rectangles
 
-Кожна зміна пікселів, видимості, прозорості, режиму чи порядку шарів
-додає прямокутник до брудної області документа. Оболонка забирає її
-(`take_dirty`) і перескладає лише цей прямокутник: мазок пензлем на
-полотні 4096 × 4096 перескладає кілька тисяч пікселів, а не 16 мільйонів.
+Every change to pixels, visibility, opacity, blend mode or layer order
+adds a rectangle to the document's dirty region. The front end takes
+it (`take_dirty`) and recomposites only that rectangle, so a brush
+stroke on a 4096 × 4096 canvas recomposites a few thousand pixels
+rather than 16 million.
 
-## Виділення
+## Selection
 
-### Інструменти виділення
+### Selection tools
 
-| Інструмент | Клавіша | Поведінка |
+| Tool | Key | Behaviour |
 |---|---|---|
-| Rectangle Select | S | Протяжка — прямокутник; Shift — квадрат. Режими малювання: Normal, Fixed Ratio (протяжка з заданим співвідношенням), Fixed Size (клацання ставить прямокутник заданого розміру). |
-| Lasso Select | S | Протяжка — довільний контур, що замикається прямою. |
-| Ellipse Select | S | Протяжка — еліпс у рамці; Shift — коло. |
-| Magic Wand | S | Клацання — область кольору під курсором з допуском (Tolerance) і режимом Flood Mode; Shift міняє режим (суміжна ↔ глобальна). |
+| Rectangle Select | S | Dragging draws a rectangle; Shift constrains it to a square. Draw modes: Normal, Fixed Ratio (drag with a set aspect ratio) and Fixed Size (a click places a rectangle of a set size). |
+| Lasso Select | S | Dragging draws a freeform outline, closed with a straight line. |
+| Ellipse Select | S | Dragging draws an ellipse inscribed in the dragged box; Shift constrains it to a circle. |
+| Magic Wand | S | Clicking selects the region of color under the cursor, using Tolerance and Flood Mode; Shift switches the mode (contiguous ↔ global). |
 
-Повторне натискання S протягом 2 секунд перемикає на наступний
-інструмент із тією ж клавішею, Shift+S — на попередній; після паузи S
-знову дає перший (Rectangle Select), а Shift+S — останній (Magic Wand).
-Так само M, O. Поки натиснуто кнопку миші, клавіші інструментів не
-діють.
+Pressing S again within 2 seconds switches to the next tool that shares
+the key, and Shift+S switches to the previous one. After a pause, S
+starts again from the first tool (Rectangle Select) and Shift+S from the
+last (Magic Wand). M and O work the same way. Tool keys have no effect
+while a mouse button is held down.
 
-Протяжка виділення:
+Dragging a selection works as follows:
 
-- клацання без руху знімає виділення в режимі Replace (крок «Deselect»,
-  якщо воно було) і нічого не робить у режимах додавання; протяжка,
-  коротша за 50 мс, вважається клацанням лише в режимі Replace;
-- друга кнопка миші під час протяжки рухає всю фігуру;
-- режим (Ctrl / Alt з лівою чи правою кнопкою) береться в мить
-  натискання і до кінця протяжки не змінюється; Shift діє наживо
-  (квадрат, коло);
-- фігура обрізається полотном; фігура повністю поза полотном у режимі
-  Replace знімає виділення, у режимах додавання — нічого не робить;
-- кнопка режиму на панелі циклічно перемикає Replace → Union → Exclude
-  → Intersect → Xor.
+- A click without movement clears the selection in Replace mode
+  (recording a "Deselect" step if there was a selection) and does
+  nothing in the combining modes. A drag shorter than 50 ms counts as a
+  click, but only in Replace mode.
+- Pressing the other mouse button during a drag moves the whole shape.
+- The mode (Ctrl or Alt with the left or right button) is taken at the
+  moment the button is pressed and does not change until the drag ends.
+  Shift acts live (square, circle).
+- The shape is clipped to the canvas. A shape entirely outside the
+  canvas clears the selection in Replace mode and does nothing in the
+  combining modes.
+- The mode button on the tool strip cycles Replace → Union → Exclude →
+  Intersect → Xor.
 
-Fixed Ratio тримає першу точку і бере меншу сторону; Fixed Size ставить
-прямокутник заданого розміру в одиницях документа (потрібні одиниці й
-DPI, див. «Відкрите»).
+Fixed Ratio keeps the first point fixed and uses the shorter side.
+Fixed Size places a rectangle of the given size in document units,
+which requires units and DPI (see "Open items").
 
-Інструменти виділення дають різкий край: піксель виділено, якщо його
-центр усередині фігури (як область відсікання Paint.NET).
+Selection tools produce a hard edge: a pixel is selected if its center
+lies inside the shape, as with Paint.NET's clipping region.
 
-### Режими об'єднання
+### Combine modes
 
-Нове виділення поєднується з наявним за режимом панелі інструментів
-(Selection Mode) або модифікатором на час протяжки:
+A new selection is combined with the existing one according to the
+mode set on the tool strip (Selection Mode) or a modifier held during
+the drag:
 
-| Режим | Модифікатор | Маска `m` з наявною `p` і новою `n` |
+| Mode | Modifier | Mask `m` from existing `p` and new `n` |
 |---|---|---|
 | Replace | — | `n` |
-| Union (Add) | Ctrl + ліва | `max(p, n)` |
-| Exclude (Subtract) | Alt + ліва | `p · (255 − n) / 255` |
-| Xor | Ctrl + права | `|p − n|` |
-| Intersect | Alt + права | `min(p, n)` |
+| Union (Add) | Ctrl + left | `max(p, n)` |
+| Exclude (Subtract) | Alt + left | `p · (255 − n) / 255` |
+| Xor | Ctrl + right | `|p − n|` |
+| Intersect | Alt + right | `min(p, n)` |
 
-Paint.NET зберігає виділення як набір многокутників і поєднує їх
-бібліотекою GPC. У нас виділення — маска покриття: операції об'єднання
-стають попіксельними формулами вище, край може бути згладженим, а GPC
-не потрібна.
+Paint.NET stores a selection as a set of polygons and combines them
+with the GPC library. Paintbox stores the selection as a coverage mask,
+so the combine operations become the per-pixel formulas above, the edge
+can be antialiased, and GPC is not needed.
 
-### Команди виділення
+### Selection commands
 
-| Команда | Клавіша | Поведінка |
+| Command | Key | Behaviour |
 |---|---|---|
-| Select All | Ctrl+A | Маска 255 на всьому полотні. |
-| Deselect | Ctrl+D; Esc або Enter, коли є виділення і кнопку миші не натиснуто | Виділення немає. |
-| Invert Selection | Ctrl+I | `255 − m`; без виділення не діє. |
-| Erase Selection | Delete | Пікселі активного шару під маскою стають `(255, 255, 255, 0)`, виділення знімається; один крок. |
-| Fill Selection | Backspace | Пікселі під маскою замінюються основним кольором (без змішування). |
-| Crop to Selection | Ctrl+Shift+X | Усі шари обрізаються до рамки виділення; поза фігурою непрямокутного виділення пікселі стають `(255, 255, 255, 0)`; виділення знімається. |
+| Select All | Ctrl+A | Sets the mask to 255 over the whole canvas. |
+| Deselect | Ctrl+D; Esc or Enter when there is a selection and no mouse button is held | Removes the selection. |
+| Invert Selection | Ctrl+I | Sets the mask to `255 − m`; has no effect without a selection. |
+| Erase Selection | Delete | Sets the active layer's pixels under the mask to `(255, 255, 255, 0)` and clears the selection, in one step. |
+| Fill Selection | Backspace | Replaces the pixels under the mask with the primary color (no blending). |
+| Crop to Selection | Ctrl+Shift+X | Crops all layers to the selection's bounding box. For a non-rectangular selection, pixels outside the shape become `(255, 255, 255, 0)`. The selection is cleared. |
 
-Кожна зміна виділення — крок історії. Команди цієї таблиці, крім Select
-All, без виділення не діють.
+Every change to the selection is a history step. Apart from Select All,
+the commands in this table have no effect without a selection.
 
-### Переміщення
+### Moving
 
-| Інструмент | Клавіша | Поведінка |
+| Tool | Key | Behaviour |
 |---|---|---|
-| Move Selected Pixels | M | Ліва протяжка піднімає виділені пікселі активного шару й рухає їх; на місці лишається додатковий колір з альфою 0. Ctrl на початку — копіює, не вирізаючи. Під час руху фрагмент показано найближчим сусідом, передискретизація (Resampling, типово Bilinear) — лише при завершенні. Права протяжка — поворот навколо центру (Shift — кроками 15°), протяжка за ручки — масштаб (Shift — зі збереженням пропорцій). Стрілки — зсув на 1 піксель, Ctrl+стрілки — на 10 (не під час протяжки). Зміна інструмента — завершити; Enter і Esc — завершити й зняти виділення. Без виділення спершу виділяється все полотно (окремий крок «Select All»). |
-| Move Selection | M | Зсув лише контуру виділення, пікселі не змінюються (поворот і масштаб контуру — див. «Відкрите»). |
+| Move Selected Pixels | M | A left drag lifts the selected pixels of the active layer and moves them; the vacated area is filled with the secondary color at alpha 0. Holding Ctrl when the drag starts copies instead of cutting. While moving, the fragment is drawn with nearest-neighbour sampling; resampling (Resampling, Bilinear by default) happens only when the move is finished. A right drag rotates around the center (Shift snaps to 15° steps); dragging a handle scales (Shift keeps the proportions). The arrow keys nudge by 1 pixel and Ctrl+arrow keys by 10 (not during a drag). Switching tools finishes the move; Enter and Esc finish it and clear the selection. With no selection, the whole canvas is selected first (as a separate "Select All" step). |
+| Move Selection | M | Moves only the selection outline; pixels do not change (for rotating and scaling the outline, see "Open items"). |
 
-Піднятий фрагмент — плаваючий шматок над активним шаром; завершення
-вклеює його Normal-змішуванням. Уся протяжка від підйому до завершення
-— один крок історії («Move Selected Pixels»).
+A lifted fragment is a floating piece above the active layer; finishing
+pastes it back with Normal blending. The whole drag, from lifting to
+finishing, is a single history step ("Move Selected Pixels").
 
-## Інструменти
+## Tools
 
-Ліва кнопка малює основним кольором, права — додатковим (якщо не
-сказано інше). Усе малювання обрізається виділенням. Перелік у порядку
-панелі Tools.
+Unless stated otherwise, the left mouse button paints with the primary
+color and the right button with the secondary color. All painting is
+clipped to the selection. Tools are listed in the order of the Tools
+window.
 
-| Інструмент | Клавіша | Параметри панелі | Поведінка |
+| Tool | Key | Tool strip settings | Behaviour |
 |---|---|---|---|
-| Rectangle Select | S | Selection Mode, Draw Mode | Див. «Виділення». |
-| Move Selected Pixels | M | Resampling | Див. «Переміщення». |
-| Lasso Select | S | Selection Mode | Див. «Виділення». |
-| Move Selection | M | — | Див. «Переміщення». |
-| Ellipse Select | S | Selection Mode | Див. «Виділення». |
-| Zoom | Z | — | Клацання лівою — ближче, правою — далі, обидва з центруванням на точці клацання; протяжка лівою — рамка (з'являється, коли вказівник відійшов на 10 пікселів екрана, обрізана зображенням), відпускання наближає до неї; рамка з діагоналлю менше 10 пікселів зображення — клацання; друга кнопка під час протяжки рухає рамку; права кнопка завжди віддаляє; середня кнопка — Pan. |
-| Magic Wand | S | Selection Mode, Flood Mode, Tolerance | Див. «Виділення». Зразок береться з активного шару. |
-| Pan | H | — | Протяжка рухає вид. Пробіл, затиснутий у будь-якому інструменті, коли жодну кнопку миші не натиснуто, тимчасово вмикає Pan (пробіл + ліва — тягнути вид; пробіл + права — безперервна прокрутка в бік курсора, див. «Рішення»). |
-| Paint Bucket | F | Flood Mode, Tolerance, Antialiasing, Alpha Blending | Клацання заливає область кольору активного шару під курсором; Shift міняє режим суміжна ↔ глобальна. Клацання поза виділенням нічого не робить. |
-| Gradient | G | Тип, Color/Transparency, Alpha Blending | Протяжка від початку до кінця; Shift — кут кроками 15°. Ліва — від основного до додаткового, права — навпаки. Клацання без протяжки теж малює: уся область отримує кінцеве значення. Після відпускання градієнт лишається живим з двома ручками: протяжка ручки змінює його (Shift наживо), права кнопка на ручці міняє кольори місцями, друга кнопка під час протяжки рухає обидві ручки, зміна кольорів перемальовує його; клацання деінде завершує і починає новий; Enter завершує, Esc скасовує. Типово Linear, Color. |
-| Paintbrush | B | Ширина, Antialiasing, Alpha Blending, твердість | Мазок круглим пензлем. |
-| Eraser | E | Ширина, Antialiasing | Мазок зменшує альфу пікселів; сила — альфа основного (ліва) чи додаткового (права) кольору. Колір пікселів не змінюється; Alpha Blending не діє. |
-| Pencil | P | Alpha Blending | Мазок шириною 1 піксель без згладжування. |
-| Color Picker | K | Після клацання: не перемикати (типово) / попередній інструмент / Pencil | Натискання лівої бере повний RGBA пікселя активного шару в основний колір, правої — в додатковий. |
-| Clone Stamp | L | Ширина, Antialiasing | Лише ліва кнопка. Ctrl+клацання ставить джерело (і шар джерела). Протяжка копіює пікселі з джерела; точка джерела рухається разом з курсором і пам'ятається між мазками, тож наступний мазок продовжує з того місця, де зупинився попередній. Непрозорість — `(primary.a / 255)⁴`. Видалення шару джерела скидає джерело. |
-| Recolor | R | Ширина, Antialiasing, Tolerance | Ліва протяжка: пікселі, близькі до додаткового кольору, зсуваються до основного (`c + (primary − secondary)`), альфа зберігається; права — навпаки. Близькість — `⌈√((ΔR² + ΔG² + ΔB²) / 3)⌉ ≤ tolerance · 256`, без альфи; допуск обмежено відстанню між двома кольорами. Однакові кольори — нічого не робить. Ctrl+клацання (і протяжка з Ctrl) бере колір під курсором в основний (ліва) чи додатковий (права), лишаючи альфу кольору користувача. |
-| Text | T | Шрифт, розмір (пункти, 96 пікселів на дюйм), Bold, Italic, Underline, Strikeout, вирівнювання, Antialiasing, Alpha Blending | Клацання ставить курсор (точка — верх першого рядка, ліворуч, по центру чи праворуч від неї); набір пише основним кольором, перший символ відкриває крок «Text». Enter — новий рядок, Backspace / Delete, стрілки, Home / End (з Ctrl — словами й до країв тексту). Права кнопка чи протяжка за ручку в куті тексту рухає його; зміна шрифту, розміру, стилю чи кольорів перемальовує. Клацання в тексті переставляє курсор, деінде — завершує й починає новий; Esc і зміна інструмента завершують. Клацання без набору кроку не лишає. |
-| Line / Curve | O | Ширина, початок і кінець (Flat, Arrow, Arrow Filled, Rounded), штрих (Solid, Dash, Dash Dot, Dash Dot Dot, Dot), Antialiasing | Протяжка — пряма; Shift — кут кроками 15°. Після протяжки — чотири ручки: протяжка ручки лівою робить сплайн, правою — криву Безьє (тип фіксується першою протяжкою). Enter або клацання деінде завершує, Esc скасовує. `,` `.` `/` — перемкнути початок, штрих, кінець. |
-| Rectangle | O | Тип: контур (типово) / заливка / обидва; ширина, Antialiasing | Протяжка — прямокутник; Shift — квадрат. |
-| Rounded Rectangle | O | те саме | Як Rectangle з радіусом кутів 10. |
-| Ellipse | O | те саме | Протяжка — еліпс у рамці; Shift — коло. |
-| Freeform Shape | O | те саме | Протяжка — довільна замкнена фігура. |
+| Rectangle Select | S | Selection Mode, Draw Mode | See "Selection". |
+| Move Selected Pixels | M | Resampling | See "Moving". |
+| Lasso Select | S | Selection Mode | See "Selection". |
+| Move Selection | M | — | See "Moving". |
+| Ellipse Select | S | Selection Mode | See "Selection". |
+| Zoom | Z | — | A left click zooms in and a right click zooms out, both centering on the clicked point. A left drag draws a zoom rectangle, which appears once the pointer has moved 10 screen pixels and is clipped to the image; releasing zooms in to it. A rectangle whose diagonal is under 10 image pixels counts as a click. Pressing the other button during the drag moves the rectangle. The right button always zooms out. The middle button pans. |
+| Magic Wand | S | Selection Mode, Flood Mode, Tolerance | See "Selection". The sample is taken from the active layer. |
+| Pan | H | — | Dragging moves the view. Holding Space in any tool while no mouse button is pressed switches to Pan temporarily: Space + left drag moves the view, and Space + right button scrolls continuously toward the cursor (see "Decisions"). |
+| Paint Bucket | F | Flood Mode, Tolerance, Antialiasing, Alpha Blending | A click fills the region of the active layer's color under the cursor; Shift switches between contiguous and global. A click outside the selection does nothing. |
+| Gradient | G | Type, Color/Transparency, Alpha Blending | Drag from the start point to the end point; Shift snaps the angle to 15° steps. The left button runs from primary to secondary, the right button the other way round. A click without dragging also paints: the whole area gets the end value. After release, the gradient stays live with two handles: dragging a handle changes it (Shift acts live), right-clicking a handle swaps the colors, pressing the other button during a drag moves both handles, and changing the colors redraws it. A click elsewhere finishes it and starts a new one; Enter finishes and Esc cancels. Defaults are Linear and Color. |
+| Paintbrush | B | Width, Antialiasing, Alpha Blending, Hardness | Paints a stroke with a round brush. |
+| Eraser | E | Width, Antialiasing, Hardness | A stroke lowers the alpha of pixels; its strength is the alpha of the primary color (left button) or the secondary color (right button). Pixel color does not change, and Alpha Blending has no effect. |
+| Pencil | P | Alpha Blending | Paints a 1-pixel-wide stroke without antialiasing. |
+| Color Picker | K | After click: do not switch (default) / previous tool / Pencil | Pressing the left button copies the full RGBA of the active layer's pixel into the primary color; the right button copies it into the secondary color. |
+| Clone Stamp | L | Width, Antialiasing | Left button only. Ctrl+click sets the source point (and the source layer). Dragging copies pixels from the source. The source point moves with the cursor and is remembered between strokes, so the next stroke continues from where the previous one stopped. Opacity is `(primary.a / 255)⁴`. Deleting the source layer resets the source. |
+| Recolor | R | Width, Antialiasing, Tolerance | A left drag shifts pixels close to the secondary color toward the primary color (`c + (primary − secondary)`), keeping alpha; a right drag does the reverse. Closeness is `⌈√((ΔR² + ΔG² + ΔB²) / 3)⌉ ≤ tolerance · 256`, ignoring alpha, and the tolerance is capped at the distance between the two colors. If the two colors are equal, the tool does nothing. Ctrl+click (and Ctrl+drag) picks the color under the cursor into the primary (left) or secondary (right) color, keeping the user color's alpha. |
+| Text | T | Font, size (in points at 96 pixels per inch), Bold, Italic, Underline, Strikeout, alignment, Antialiasing, Alpha Blending | A click places the caret; the point is the top of the first line, and the text runs to its left, center or right according to the alignment. Typing writes in the primary color, and the first character opens a "Text" step. Enter starts a new line; Backspace / Delete, the arrow keys and Home / End work as usual (with Ctrl, they move by words and to the ends of the text). The right button, or dragging the handle at the text's corner, moves the text; changing the font, size, style or colors redraws it. A click inside the text moves the caret; a click elsewhere finishes the text and starts a new one. Esc and switching tools finish it. A click with nothing typed leaves no step. |
+| Line / Curve | O | Width, start and end caps (Flat, Arrow, Arrow Filled, Rounded), dash style (Solid, Dash, Dash Dot, Dash Dot Dot, Dot), Antialiasing | Dragging draws a straight line; Shift snaps the angle to 15° steps. After the drag there are four handles: dragging a handle with the left button makes a spline, with the right button a Bézier curve (the first handle drag fixes the type). Enter or a click elsewhere finishes; Esc cancels. `,` `.` `/` cycle the start cap, the dash style and the end cap. |
+| Rectangle | O | Type: outline (default) / fill / both; width, Antialiasing | Dragging draws a rectangle; Shift constrains it to a square. |
+| Rounded Rectangle | O | Same | Like Rectangle, with a corner radius of 10. |
+| Ellipse | O | Same | Dragging draws an ellipse inscribed in the dragged box; Shift constrains it to a circle. |
+| Freeform Shape | O | Same | Dragging draws a freeform closed shape. |
 
-Кольори фігур: контур — основним, заливка — додатковим (ліва кнопка);
-права кнопка міняє їх місцями. Для типу «лише заливка» заливається
-основним (ліва). Друга кнопка миші під час протяжки фігури чи лінії
-рухає всю фігуру.
+Shape colors: with the left button the outline uses the primary color
+and the fill uses the secondary color; the right button swaps them. For
+the fill-only type, the left button fills with the primary color.
+Pressing the other mouse button while dragging a shape or line moves
+the whole shape.
 
-### Спільні клавіші інструментів
+### Common tool keys
 
-| Клавіша | Дія |
+| Key | Action |
 |---|---|
-| `[` / `]` | Ширина пензля −1 / +1; з Ctrl — ±5. |
-| X | Поміняти основний і додатковий кольори. |
-| C | Перемкнути, який із двох кольорів редагує вікно Colors. |
-| Пробіл (затиснути) | Тимчасовий Pan. |
-| Esc / Enter | Живий градієнт чи криву Enter завершує, Esc скасовує; інакше — завершити переміщення і зняти виділення, якщо воно є і кнопку миші не натиснуто. |
-| Стрілки | В інструментах переміщення — зсув на 1 (Ctrl — 10) пікселів; в інших — крок курсора миші. |
+| `[` / `]` | Brush width −1 / +1; with Ctrl, ±5. |
+| X | Swap the primary and secondary colors. |
+| C | Switch which of the two colors the Colors window edits. |
+| Space (held) | Temporary Pan. |
+| Esc / Enter | For a live gradient or curve, Enter finishes and Esc cancels. Otherwise both finish a move and clear the selection, if there is one and no mouse button is held. |
+| Arrow keys | In the move tools, nudge by 1 pixel (10 with Ctrl); in other tools, move the mouse cursor. |
 
-### Параметри інструментів
+### Tool settings
 
-Типові значення: ширина 2, Antialiasing увімкнено, Alpha Blending
-увімкнено, Tolerance 50%, Flood Mode Local, Selection Mode Replace,
-Resampling Bilinear, тип фігури — контур.
+Defaults: width 2, Antialiasing on, Alpha Blending on, Tolerance 50%,
+Flood Mode Local, Selection Mode Replace, Resampling Bilinear, shape
+type outline.
 
-- **Ширина** (Brush Width): 1–500 пікселів, типово 2.
-- **Antialiasing**: згладжений край (покриття пікселя частково) або
-  різкий (поріг 50%).
-- **Alpha Blending**: так — колір змішується з пікселем шару (Normal),
-  ні — замінює піксель разом з альфою.
-- **Tolerance**: 0–100%, типово 50%. Колір `b` близький до зразка `a`,
-  якщо (формула `FloodToolBase.CheckColor`)
+- **Width** (Brush Width): 1–500 pixels, 2 by default.
+- **Antialiasing**: an antialiased edge (partial pixel coverage) or a
+  hard edge (50% threshold).
+- **Alpha Blending**: when on, the color is blended with the layer
+  pixel (Normal); when off, it replaces the pixel, alpha included.
+- **Tolerance**: 0–100%, 50% by default. A color `b` is close to the
+  sample `a` if (formula from `FloodToolBase.CheckColor`)
 
   ```
   T = ⌊tolerance² · 256⌋                         tolerance ∈ [0, 1]
   sum = Σ_{r,g,b} ⌊(1 + (a.c − b.c)²) · a.a / 256⌋ + (a.a − b.a)²
-  близький ⇔ sum ≤ T² · 4
+  close ⇔ sum ≤ T² · 4
   ```
 
-  Зразок `a` — піксель під курсором; квадрат у `T` робить повзунок
-  чутливішим біля нуля.
-- **Flood Mode**: Local — лише суміжна область (заливка по рядках),
-  Global — усі пікселі полотна, близькі до зразка.
-- **Тип градієнта**: Linear, Linear Reflected, Diamond, Radial, Conical.
-  Параметр `t ∈ [0, 1]` для пікселя `p` при початку `s` і кінці `e`:
+  The sample `a` is the pixel under the cursor; squaring the tolerance
+  in `T` makes the slider more sensitive near zero.
+- **Flood Mode**: Local fills only the contiguous region (scanline
+  fill); Global takes every pixel on the canvas that is close to the
+  sample.
+- **Gradient type**: Linear, Linear Reflected, Diamond, Radial, Conical.
+  The parameter `t ∈ [0, 1]` for a pixel `p`, with start point `s` and
+  end point `e`, is:
 
-  | Тип | `t` |
+  | Type | `t` |
   |---|---|
   | Linear | `clamp(((p − s) · (e − s)) / |e − s|², 0, 1)` |
-  | Linear Reflected | те саме, але `clamp(|t|, 0, 1)` |
-  | Diamond | `clamp(|t₁| + |t₂|, 0, 1)`, `t₂` — проєкція на перпендикуляр |
+  | Linear Reflected | as Linear, but `clamp(|t|, 0, 1)` |
+  | Diamond | `clamp(|t₁| + |t₂|, 0, 1)`, where `t₂` is the projection onto the perpendicular |
   | Radial | `clamp(|p − s| / |e − s|, 0, 1)` |
-  | Conical | `θ/π + зсув`, де `θ = atan2(p − s)`, зсув робить `t(e) = 0`; загорнуте в `[−1, 1]`, потім `|t|` |
+  | Conical | `θ/π + offset`, where `θ = atan2(p − s)` and the offset makes `t(e) = 0`; wrapped into `[−1, 1]`, then `|t|` |
 
-  `t` рахується в цілій точці пікселя `p = (x, y)`, як у джерелі, і
-  квантується до байта `⌊t · 255⌋`. Режим Color: колір — `ColorBgra.Blend`
-  початку й кінця з вагою `t`, колір зважено альфою кожного кінця (до
-  прозорого кінця червоний лишається червоним, падає лише альфа); з Alpha Blending він
-  змішується Normal поверх шару, без нього (або коли обидві альфи 255) —
-  замінює піксель. Режим Transparency: змінюється лише альфа шару;
-  цільова альфа — `start.a + (255 − end.a − start.a) · t`; з Alpha
-  Blending альфа пікселя множиться на неї, без — замінюється нею.
-  Збіг початку й кінця — уся область отримує кінцеве значення.
-- **Твердість** (Hardness): 0–100%, у Paint.NET 3.36 її немає (додана
-  в 4.x); 100% — тверда межа, менше — край пензля спадає від
-  `hardness · r` до `r`. Типово 100%, тож без неї поведінка як у 3.36.
-  На панелі — поруч з Brush (тип заливки: суцільна чи штрихування).
+  `t` is computed at the integer pixel point `p = (x, y)`, as in the
+  source, and quantized to a byte as `⌊t · 255⌋`. In Color mode the
+  color is `ColorBgra.Blend` of the start and end colors with weight
+  `t`, with color weighted by each end's alpha (so toward a transparent
+  end, red stays red and only alpha falls). With Alpha Blending it is
+  blended Normal over the layer; without it (or when both alphas are
+  255) it replaces the pixel. In Transparency mode only the layer's
+  alpha changes; the target alpha is `start.a + (255 − end.a − start.a) · t`.
+  With Alpha Blending the pixel's alpha is multiplied by it; without,
+  the pixel's alpha is replaced by it. If the start and end points
+  coincide, the whole area gets the end value.
+- **Hardness**: 0–100%. Paint.NET 3.36 does not have it (it was added
+  in 4.x). At 100% the brush has a hard rim; below that, the brush's
+  edge falls off from `hardness · r` to `r`. The default is 100%, so
+  without touching it the behaviour matches 3.36. In the tool strip it
+  follows Brush Width and is shown for Paintbrush and Eraser.
 
-## Історія
+## History
 
-- Перший запис історії — «New Image» чи «Open Image», його не можна
-  скасувати; «на початок» веде до нього.
-- Кожна завершена дія — один крок з назвою дії (назва інструмента,
-  коригування, ефекту чи команди). Підйом фрагмента, його рух і
-  завершення — один складений крок.
-- Undo — Ctrl+Z, Redo — Ctrl+Y. Нова дія після Undo відкидає
-  скасовані кроки.
-- Вікно History показує кроки; клацання на кроці переходить до нього
-  (кілька Undo чи Redo разом). Кнопки: на початок, Undo, Redo, у кінець.
-- Крок зберігає лише змінене: для пікселів — плитки 64 × 64, у яких
-  щось змінилось, «до» і «після»; для виділення — дві маски; для
-  шару — його властивості чи сам шар (додано, видалено). Повна копія
-  документа на крок не робиться.
-- Кольори користувача історією не записуються (як у Paint.NET).
+- The first history entry is "New Image" or "Open Image" and cannot be
+  undone; "go to start" leads to it.
+- Each completed action is one step, named after the action (the name
+  of the tool, adjustment, effect or command). Lifting a fragment,
+  moving it and finishing it form a single composite step.
+- Undo is Ctrl+Z and Redo is Ctrl+Y. A new action after an Undo
+  discards the undone steps.
+- The History window lists the steps; clicking a step jumps to it
+  (several Undos or Redos at once). Its buttons are: go to start, Undo,
+  Redo, go to end.
+- A step stores only what changed: for pixels, the "before" and "after"
+  of the 64 × 64 tiles in which something changed; for the selection,
+  the two masks; for a layer, its properties or the layer itself (when
+  added or deleted). No full copy of the document is made per step.
+- The user colors are not recorded in history (as in Paint.NET).
 
-## Кольори
+## Colors
 
-- Основний і додатковий кольори, X — поміняти; кнопки «поміняти» і
-  «чорний / білий»; More / Less розгортає повзунки.
-- Палітра — рівно 96 зразків (нестача доповнюється білим, зайве
-  відкидається): клацання лівою по зразку — основний, правою —
-  додатковий.
-- Файл палітри Paint.NET — текст UTF-8, по кольору `AARRGGBB` (hex) на
-  рядок, `;` — коментар; шість цифр читаються з альфою 0. Ядро читає й
-  пише цей формат.
+- Primary and secondary colors; X swaps them. There are buttons to swap
+  the colors and to reset them to black and white. More / Less expands
+  or collapses the sliders.
+- The palette has exactly 96 swatches (missing ones are filled with
+  white, extra ones are dropped). Left-clicking a swatch sets the
+  primary color; right-clicking sets the secondary color.
+- A Paint.NET palette file is UTF-8 text with one color per line as
+  `AARRGGBB` (hex); `;` starts a comment. Six digits are read with
+  alpha 0. The core reads and writes this format.
 
-## Коригування (меню Adjustments)
+## Adjustments (Adjustments menu)
 
-Діють на активний шар у межах виділення (зі згладженим краєм —
-пропорційно покриттю). Кожне — один крок історії.
+Adjustments act on the active layer within the selection (in
+proportion to coverage where the selection edge is antialiased). Each
+one is a single history step.
 
-| Коригування | Клавіша | Параметри (типово, діапазон) | Алгоритм |
+| Adjustment | Key | Parameters (default, range) | Algorithm |
 |---|---|---|---|
-| Auto-Level | Ctrl+Shift+L | — | Levels з гістограми виділення: низ — перцентиль 0,5%, верх — 99,5%, md — середнє; гамма каналу `clamp(log_{(md−lo)/(hi−lo)} 0,5, 0,1, 10)`, якщо `lo < md < hi`, інакше 1; вихід — чорний / білий. |
-| Black and White | Ctrl+Shift+G | — | Колір → яскравість `(7471·B + 38470·G + 19595·R) >> 16`. |
-| Brightness / Contrast | Ctrl+Shift+C | Brightness 0 (−100…100), Contrast 0 (−100…100) | Див. формулу нижче. |
-| Curves | Ctrl+Shift+M | Режим Luminosity (типово) або RGB; контрольні точки | Натуральний кубічний сплайн через точки; Luminosity зсуває всі канали на різницю кривої яскравості. |
-| Hue / Saturation | Ctrl+Shift+U | Hue 0 (−180…180), Saturation 100 (0…200), Lightness 0 (−100…100) | Див. формулу нижче. |
-| Invert Colors | Ctrl+Shift+I | — | `255 − c` для RGB, альфа без змін. |
-| Levels | Ctrl+L | Вхід low/high, вихід low/high, гамма на канал (0,1…10) | `out = lo' + (hi' − lo') · ((c − lo)/(hi − lo))^γ`. |
-| Posterize | Ctrl+Shift+P | Red, Green, Blue 16 (2…64), Linked | Канал квантується на N рівнів таблицею Paint.NET. |
-| Sepia | Ctrl+Shift+E | — | Black and White, потім Levels з гаммою B 1,2, G 1,0, R 0,8. |
+| Auto-Level | Ctrl+Shift+L | — | Levels derived from the selection's histogram: low is the 0.5% percentile, high is the 99.5% percentile, and md is the mean. The channel gamma is `clamp(log_{(md−lo)/(hi−lo)} 0.5, 0.1, 10)` if `lo < md < hi`, otherwise 1. Output is black to white. |
+| Black and White | Ctrl+Shift+G | — | Converts color to luminance `(7471·B + 38470·G + 19595·R) >> 16`. |
+| Brightness / Contrast | Ctrl+Shift+C | Brightness 0 (−100…100), Contrast 0 (−100…100) | See the formula below. |
+| Curves | Ctrl+Shift+M | Mode: Luminosity (default) or RGB; control points | A natural cubic spline through the points. Luminosity shifts all channels by the difference given by the luminosity curve. |
+| Hue / Saturation | Ctrl+Shift+U | Hue 0 (−180…180), Saturation 100 (0…200), Lightness 0 (−100…100) | See the formula below. |
+| Invert Colors | Ctrl+Shift+I | — | `255 − c` for RGB; alpha is unchanged. |
+| Levels | Ctrl+L | Input low/high, output low/high, gamma per channel (0.1…10) | `out = lo' + (hi' − lo') · ((c − lo)/(hi − lo))^γ`. |
+| Posterize | Ctrl+Shift+P | Red, Green, Blue 16 (2…64), Linked | Each channel is quantized to N levels using Paint.NET's table. |
+| Sepia | Ctrl+Shift+E | — | Black and White, then Levels with gamma B 1.2, G 1.0, R 0.8. |
 
-**Brightness / Contrast.** `i` — яскравість пікселя. Contrast `c < 0`:
-`mul = c + 100`, `div = 100`; `c > 0`: `mul = 100`, `div = 100 − c`;
-`c = 0`: `mul = div = 1`. Зсув каналу
+**Brightness / Contrast.** `i` is the pixel's luminance. For Contrast
+`c < 0`: `mul = c + 100`, `div = 100`; for `c > 0`: `mul = 100`,
+`div = 100 − c`; for `c = 0`: `mul = div = 1`. The channel shift is:
 
 ```
 div = 100:  shift = (i − 127) · mul / div + 127 − i + brightness
-інакше:     shift = (i − 127 + brightness) · mul / div + 127 − i
+otherwise:  shift = (i − 127 + brightness) · mul / div + 127 − i
 out = clamp(c + shift)
 ```
 
-Contrast 100 (`div = 0`) — поріг: сірий 0 чи 255 за `i + brightness < 128`.
+Contrast 100 (`div = 0`) is a threshold: the result is gray 0 or 255
+depending on whether `i + brightness < 128`.
 
-**Hue / Saturation.** `k = saturation · 1024 / 100`; канал
-`clamp((i · 1024 + (c − i) · k) >> 10)`. Потім тон у HSV зсувається на
-Hue і загортається в 0…360. Потім Lightness: змішування з білим
-(`l > 0`) чи чорним (`l < 0`) з вагою `|l| · 255 / 100`. Альфа не
-змінюється. Paint.NET рахує HSV цілими (тон у градусах, S і V у
-відсотках), що квантує колір; ядро рахує HSV дробовими числами.
+**Hue / Saturation.** `k = saturation · 1024 / 100`; each channel
+becomes `clamp((i · 1024 + (c − i) · k) >> 10)`. Next, the HSV hue is
+shifted by Hue and wrapped into 0…360. Then Lightness blends with white
+(`l > 0`) or black (`l < 0`) with weight `|l| · 255 / 100`. Alpha does
+not change. Paint.NET computes HSV in integers (hue in degrees, S and V
+in percent), which quantizes the color; the core computes HSV in
+floating point.
 
-## Ефекти (меню Effects)
+## Effects (Effects menu)
 
-Повний перелік Paint.NET 3.36 (OpenPDN), параметри — типове значення й
-діапазон. «Ядро» — ефект уже є в `paintbox_core`. Ctrl+F повторює
-останній ефект з тими самими параметрами.
+This is the full list from Paint.NET 3.36 (OpenPDN); parameters are
+given as default value and range. The "Core" column shows whether the
+effect is already implemented in `paintbox_core`. Ctrl+F repeats the
+last effect with the same parameters.
 
-Offset — зсув центру в частках півширини й піввисоти (0, 0 — центр
-шару). Quality — скільки відліків бере піксель: більше — гладше й
-повільніше. Seed — зерно шуму:
-у джерелі Dents і Clouds мають зерно 0…255, змішане з випадковим числом
-сеансу, а Frosted Glass щоразу інший; у ядрі зерно відтворює картинку.
+Offset moves the center, in fractions of the half-width and
+half-height (0, 0 is the center of the layer). Quality sets how many
+samples each pixel takes: more is smoother and slower. Seed is the
+noise seed: in the source, Dents and Clouds have a seed of 0…255 mixed
+with a random number per program run, and Frosted Glass differs every
+time; in the core, the seed reproduces the image.
 
-| Підменю | Ефект | Параметри | Ядро |
+| Submenu | Effect | Parameters | Core |
 |---|---|---|---|
-| Artistic | Ink Sketch | Ink Outline 50 (0…99), Coloring 50 (0…100) | так |
-| Artistic | Oil Painting | Brush Size 3 (1…8), Coarseness 50 (3…255) | так |
-| Artistic | Pencil Sketch | Pencil Tip Size 2 (1…20), Color Range 0 (−20…20) | так |
-| Blurs | Fragment | Fragments 4 (2…50), Distance 8 (0…100), Rotation 0 (0…360) | так |
-| Blurs | Gaussian Blur | Radius 2 (0…200) | так |
-| Blurs | Motion Blur | Angle 25 (−180…180), Distance 10 (1…200), Centered так | так |
-| Blurs | Radial Blur | Angle 2 (0…360), Offset 0, 0 (−2…2), Quality 2 (1…5) | так |
-| Blurs | Surface Blur | Radius 6 (1…100), Threshold 15 (1…100) | так |
-| Blurs | Unfocus | Radius 4 (1…200) | так |
-| Blurs | Zoom Blur | Amount 10 (0…100), Offset 0, 0 (−2…2) | так |
-| Distort | Bulge | Amount 45 (−200…100), Offset 0, 0 (−1…1) | так |
-| Distort | Dents | Scale 25 (1…200), Refraction 50 (0…200), Roughness 10 (0…100), Tension 10 (0…100), Quality 2 (1…5), Seed | так |
-| Distort | Frosted Glass | Max Scatter 3 (0…200), Min Scatter 0 (0…200), Samples 2 (1…8), Seed | так |
-| Distort | Pixelate | Cell Size 2 (1…100) | так |
-| Distort | Polar Inversion | Amount 1 (−4…4), Offset 0, 0 (−2…2), Edge Behavior Wrap (Clamp, Reflect, Wrap), Quality 2 (1…5) | так |
-| Distort | Tile Reflection | Rotation 30 (−180…180), Tile Size 40 (1…800), Curvature 8 (−100…100), Quality 2 (1…5) | так |
-| Distort | Twist | Amount 30 (−200…200), Size 1 (0,01…2), Offset 0, 0 (−2…2), Quality 2 (1…5) | так |
-| Noise | Add Noise | Intensity 64 (0…100), Color Saturation 100 (0…400), Coverage 100 (0…100) | так |
-| Noise | Median | Radius 10 (1…200), Percentile 50 (0…100) | так |
-| Noise | Reduce Noise | Radius 10 (0…200), Strength 0,4 (0…1) | так |
-| Photo | Glow | Radius 6 (1…20), Brightness 10 (−100…100), Contrast 10 (−100…100) | так |
-| Photo | Red Eye Removal | Tolerance 70 (0…100), Saturation 90 (0…100) | так |
-| Photo | Sharpen | Amount 2 (1…20) | так |
-| Photo | Soften Portrait | Softness 5 (0…10), Lighting 0 (−20…20), Warmth 10 (0…20) | так |
-| Photo | Vignette | Offset, Radius 0,5 (0,1…4), Amount 1 (0…1) — у збірці 3.36 немає | — |
-| Render | Clouds | Scale 250 (2…1000), Power 0,5 (0…1), Blend Mode Normal (режими шарів), Seed | так |
-| Render | Julia Fractal | Factor 4 (1…10), Zoom 1 (0,1…50), Angle 0 (−180…180), Quality 2 (1…5) | так |
-| Render | Mandelbrot Fractal | Factor 1 (1…10), Zoom 10 (0…100), Angle 0 (−180…180), Quality 2 (1…5), Invert Colors ні | так |
-| Stylize | Edge Detect | Angle 45 (−180…180) | так |
-| Stylize | Emboss | Angle 0 (−180…180) | так |
-| Stylize | Outline | Thickness 3 (1…200), Intensity 50 (0…100) | так |
-| Stylize | Relief | Angle 45 (−180…180) | так |
+| Artistic | Ink Sketch | Ink Outline 50 (0…99), Coloring 50 (0…100) | yes |
+| Artistic | Oil Painting | Brush Size 3 (1…8), Coarseness 50 (3…255) | yes |
+| Artistic | Pencil Sketch | Pencil Tip Size 2 (1…20), Color Range 0 (−20…20) | yes |
+| Blurs | Fragment | Fragments 4 (2…50), Distance 8 (0…100), Rotation 0 (0…360) | yes |
+| Blurs | Gaussian Blur | Radius 2 (0…200) | yes |
+| Blurs | Motion Blur | Angle 25 (−180…180), Distance 10 (1…200), Centered yes | yes |
+| Blurs | Radial Blur | Angle 2 (0…360), Offset 0, 0 (−2…2), Quality 2 (1…5) | yes |
+| Blurs | Surface Blur | Radius 6 (1…100), Threshold 15 (1…100) | yes |
+| Blurs | Unfocus | Radius 4 (1…200) | yes |
+| Blurs | Zoom Blur | Amount 10 (0…100), Offset 0, 0 (−2…2) | yes |
+| Distort | Bulge | Amount 45 (−200…100), Offset 0, 0 (−1…1) | yes |
+| Distort | Dents | Scale 25 (1…200), Refraction 50 (0…200), Roughness 10 (0…100), Tension 10 (0…100), Quality 2 (1…5), Seed | yes |
+| Distort | Frosted Glass | Max Scatter 3 (0…200), Min Scatter 0 (0…200), Samples 2 (1…8), Seed | yes |
+| Distort | Pixelate | Cell Size 2 (1…100) | yes |
+| Distort | Polar Inversion | Amount 1 (−4…4), Offset 0, 0 (−2…2), Edge Behavior Wrap (Clamp, Reflect, Wrap), Quality 2 (1…5) | yes |
+| Distort | Tile Reflection | Rotation 30 (−180…180), Tile Size 40 (1…800), Curvature 8 (−100…100), Quality 2 (1…5) | yes |
+| Distort | Twist | Amount 30 (−200…200), Size 1 (0.01…2), Offset 0, 0 (−2…2), Quality 2 (1…5) | yes |
+| Noise | Add Noise | Intensity 64 (0…100), Color Saturation 100 (0…400), Coverage 100 (0…100) | yes |
+| Noise | Median | Radius 10 (1…200), Percentile 50 (0…100) | yes |
+| Noise | Reduce Noise | Radius 10 (0…200), Strength 0.4 (0…1) | yes |
+| Photo | Glow | Radius 6 (1…20), Brightness 10 (−100…100), Contrast 10 (−100…100) | yes |
+| Photo | Red Eye Removal | Tolerance 70 (0…100), Saturation 90 (0…100) | yes |
+| Photo | Sharpen | Amount 2 (1…20) | yes |
+| Photo | Soften Portrait | Softness 5 (0…10), Lighting 0 (−20…20), Warmth 10 (0…20) | yes |
+| Photo | Vignette | Offset, Radius 0.5 (0.1…4), Amount 1 (0…1); not in the 3.36 build | — |
+| Render | Clouds | Scale 250 (2…1000), Power 0.5 (0…1), Blend Mode Normal (the layer blend modes), Seed | yes |
+| Render | Julia Fractal | Factor 4 (1…10), Zoom 1 (0.1…50), Angle 0 (−180…180), Quality 2 (1…5) | yes |
+| Render | Mandelbrot Fractal | Factor 1 (1…10), Zoom 10 (0…100), Angle 0 (−180…180), Quality 2 (1…5), Invert Colors no | yes |
+| Stylize | Edge Detect | Angle 45 (−180…180) | yes |
+| Stylize | Emboss | Angle 0 (−180…180) | yes |
+| Stylize | Outline | Thickness 3 (1…200), Intensity 50 (0…100) | yes |
+| Stylize | Relief | Angle 45 (−180…180) | yes |
 
-Алгоритми ефектів ядра — як у джерелі:
+The core's effect algorithms follow the source:
 
-- **Gaussian Blur** у Paint.NET — не гаусове, а трикутне ядро
-  (ваги `16·(i+1)` до центру, роздільне по осях), колір зважено
-  альфою. Трикутне ядро — згортка двох прямокутних, тож ядро рахує
-  його ковзними сумами: час не залежить від радіуса.
-- **Sharpen**, **Median**, **Outline** — локальна гістограма в колі
-  радіуса `r` (піксель у колі, якщо `u² + v² ≤ ((2r+1)² + 2) / 4`).
-  Median — перцентиль каналу; Sharpen — `lerp(c, median, −0,5)` при
-  радіусі Amount; Outline — `255 − (c₂ − c₁)` між перцентилями
-  `(100 ∓ intensity)/2`.
-- **Motion Blur** — середнє (зважене альфою) з `(1 + d)·3/2` білінійних
-  відліків уздовж відрізка довжини `d` під кутом; Centered — відрізок
-  з центром у пікселі.
-- **Oil Painting** — у квадраті `2·size+1` пікселі розкладено за
-  яскравістю на `coarseness` кошиків; результат — середній колір
-  найповнішого кошика.
-- **Emboss** — ядро 3 × 3 з вагами `cos(кут + k·45°)` по яскравості,
-  плюс 128, сірий результат, непрозорий.
-- **Edge Detect** — те саме ядро по кожному каналу RGB без зсуву,
-  непрозорий результат.
-- **Pixelate** — клітинка `size × size` від початку полотна, колір —
-  середнє чотирьох кутів клітинки.
-- **Add Noise** — нормальний шум зі стандартним відхиленням
-  `intensity² / 64`, насиченість шуму відносно його яскравості, частка
-  пікселів — Coverage. Генератор у ядрі детермінований і має зерно
-  (seed), щоб результат можна було відтворити й протестувати.
-- **Ink Sketch** — Glow (радіус 6, яскравість і контраст
-  `−(Coloring − 50)·2`), затемнений чорнилом: ядро 5 × 5 (центр 30,
-  решта −1, під центром −5) по RGB, сіре; де воно не світліше за
-  Ink Outline % — чорне.
-- **Pencil Sketch** — розмиття радіусом Tip Size, Brightness /
-  Contrast (Range, −Range), інверсія, сіре; результат накладено Color
-  Dodge на сірий шар: рівні місця білі, краї лишаються.
-- **Fragment** — середнє `Fragments` копій шару, зсунутих на Distance
-  рівномірно по колу від кута Rotation.
-- **Radial Blur** — піксель і `q²(30 + q²)` відліків у кожен бік по
-  дузі навколо центру на кут Angle; поворот — фіксована кома джерела
-  (`sin x ≈ x`, `cos x ≈ 1 − x²/2`), у ядрі 64-бітна.
-- **Surface Blur** — гістограма кола радіуса Radius; канал — середнє
-  значень кола з вагою `255 − різниця·96/Threshold` (не менше 0), тож
-  краї не розмиваються; альфа пікселя лишається.
-- **Unfocus** — середнє кола, зважене альфою. Джерело ділить на
-  `площа·255` і темнить напівпрозорі пікселі; ядро ділить на суму
-  альфи (для непрозорих — те саме).
-- **Zoom Blur** — піксель і 64 відліки кроками до центру, кожен
-  `Amount/16384` шляху.
-- **Bulge** — у колі, вписаному в шар, точка на відносній відстані `t`
-  від краю бере відлік на `1 − Amount/100·t²` своєї відстані від центру;
-  поза колом піксель лишається.
-- **Dents** — точку зсуває шум Перліна (`PerlinNoise2D` джерела, октави
-  до межі в піксель): напрям — шум, помножений на Tension, відстань —
-  Refraction; на краях шар віддзеркалюється. Центр і масштаб — від
-  меж виділення.
-- **Frosted Glass** — середнє Samples білінійних відліків у випадкових
-  точках між двома радіусами розсіювання.
-- **Polar Inversion** — точка на відстані `d` від центру виділення бере
-  відлік на `R²/d` (`R` — радіус кола, вписаного у виділення), на Amount
-  шляху; поза шаром — за Edge Behavior.
-- **Tile Reflection** — в осях, повернутих на Rotation, кожна вісь
-  зсунута на `Curvature²/10 · tg(s·π/Tile Size)`; відліки загортаються
-  по шару. Quality понад 1 бере на рівень більше відліків, як у джерелі.
-- **Twist** — точка повертається навколо центру на `Amount²·t³/100`
-  радіан, `t` спадає від 1 у центрі до 0 на Size радіуса вписаного
-  кола.
-- **Reduce Noise** — для кожного каналу частка значень кола, менших за
-  піксельне (0…255); піксель відходить від неї на `0,2·Strength`,
-  менше у світлих пікселях.
-- **Glow** — розмиття, Brightness / Contrast, результат накладено
-  Screen на шар.
-- **Red Eye Removal** — насичений піксель, червоний якого перевищує
-  інші канали більш ніж на Tolerance, отримує червоний, рівний
-  яскравості на Saturation %.
-- **Soften Portrait** — розмиття радіусом `3·Softness`, Brightness /
-  Contrast (Lighting, −Lighting/2), накладене Overlay на сірий шар,
-  підігрітий на Warmth % (більше червоного, менше синього).
-- **Clouds** — до 12 октав шуму Перліна від центру шару, перша Scale
-  пікселів, кожна наступна вдвічі дрібніша і в Power разів слабша. У
-  джерелі хмари йдуть від основного кольору до додаткового; ефект ядра
-  не бачить кольорів користувача, тож малює від чорного до білого
-  (типові кольори Paint.NET) і кладе на шар режимом Blend Mode.
-- **Julia Fractal** — множина Жюліа для `c = 0,3125 + 0,03i`, до 256
-  кроків зі згладженим лічильником; лічильник·Factor, проходячи 0, 256,
-  512, 768, вмикає альфу, червоний, зелений і синій.
-- **Mandelbrot Fractal** — околиця `(−0,7; −0,29)`, збільшена
-  `1 + 20·Zoom` разів, до `1024/Factor` кроків; значення `64 +
-  Factor·лічильник` так само вмикає альфу, синій, зелений і червоний.
-  Усередині множини — біле (Invert Colors — чорне). Ядро не крокує
-  точки головної кардіоїди й круга періоду 2 і зупиняє орбіту, що
-  повернулася до збереженої точки ближче за 10⁻⁶ (цикл); решту орбіт
-  крокує по вісім пліч-о-пліч блоками по 16 кроків, а блок, у якому
-  орбіта вийшла, повторює покроково — лічильники як у джерелі.
-- **Relief** — ядро Edge Detect з центром 1: рисунок лишається під
-  рельєфом країв.
+- **Gaussian Blur** in Paint.NET is not Gaussian but a triangular
+  kernel (weights `16·(i+1)` toward the center, separable by axis),
+  with color weighted by alpha. A triangular kernel is the convolution
+  of two box kernels, so the core computes it with running sums, and
+  its running time does not depend on the radius.
+- **Sharpen**, **Median** and **Outline** use a local histogram in a
+  circle of radius `r` (a pixel is in the circle if
+  `u² + v² ≤ ((2r+1)² + 2) / 4`). Median takes a channel percentile.
+  Sharpen is `lerp(c, median, −0.5)` with Amount as the radius. Outline
+  is `255 − (c₂ − c₁)` between the percentiles `(100 ∓ intensity)/2`.
+- **Motion Blur** is the alpha-weighted average of `(1 + d)·3/2`
+  bilinear samples along a segment of length `d` at the given angle;
+  Centered centers the segment on the pixel.
+- **Oil Painting** sorts the pixels in a `2·size+1` square into
+  `coarseness` bins by intensity; the result is the average color of
+  the fullest bin.
+- **Emboss** is a 3 × 3 kernel with weights `cos(angle + k·45°)` applied
+  to luminance, plus 128; the result is gray and opaque.
+- **Edge Detect** applies the same kernel to each RGB channel without
+  the offset; the result is opaque.
+- **Pixelate** uses `size × size` cells starting from the canvas
+  origin; the cell color is the average of the cell's four corners.
+- **Add Noise** adds normal noise with standard deviation
+  `intensity² / 64`; the noise saturation is relative to its
+  luminance, and Coverage sets the share of pixels affected. The
+  core's generator is deterministic and seeded, so the result can be
+  reproduced and tested.
+- **Ink Sketch** is Glow (radius 6, brightness and contrast
+  `−(Coloring − 50)·2`) darkened with ink: a 5 × 5 kernel (center 30,
+  the rest −1, directly below the center −5) over RGB, in gray; where
+  it is not lighter than Ink Outline %, the pixel becomes black.
+- **Pencil Sketch** is a blur with radius Tip Size, Brightness /
+  Contrast (Range, −Range), inversion and conversion to gray; the
+  result is applied with Color Dodge onto a gray layer, so flat areas
+  turn white and edges remain.
+- **Fragment** is the average of `Fragments` copies of the layer,
+  offset by Distance and spaced evenly around a circle starting at the
+  Rotation angle.
+- **Radial Blur** takes the pixel and `q²(30 + q²)` samples in each
+  direction along an arc around the center, spanning the Angle. The
+  rotation uses the source's fixed-point arithmetic (`sin x ≈ x`,
+  `cos x ≈ 1 − x²/2`), which is 64-bit in the core.
+- **Surface Blur** uses the histogram of a circle of radius Radius;
+  each channel is the average of the circle's values weighted by
+  `255 − difference·96/Threshold` (not less than 0), so edges are not
+  blurred. The pixel's alpha is kept.
+- **Unfocus** is the alpha-weighted average of a circle. The source
+  divides by `area·255` and darkens semi-transparent pixels; the core
+  divides by the sum of alpha (which is the same for opaque pixels).
+- **Zoom Blur** takes the pixel and 64 samples stepping toward the
+  center, each step `Amount/16384` of the way.
+- **Bulge** works inside the circle inscribed in the layer: a point at
+  relative distance `t` from the edge samples at `1 − Amount/100·t²` of
+  its distance from the center. Pixels outside the circle are
+  unchanged.
+- **Dents** displaces each point with Perlin noise (the source's
+  `PerlinNoise2D`, with octaves down to the one-pixel limit): the
+  direction is the noise multiplied by Tension, and the distance is
+  Refraction. At the edges the layer is mirrored. The center and scale
+  come from the selection bounds.
+- **Frosted Glass** is the average of Samples bilinear samples at
+  random points between the two scatter radii.
+- **Polar Inversion** makes a point at distance `d` from the center of
+  the selection sample at `R²/d` (where `R` is the radius of the circle
+  inscribed in the selection), Amount of the way there; outside the
+  layer, Edge Behavior applies.
+- **Tile Reflection** works in axes rotated by Rotation; each axis is
+  offset by `Curvature²/10 · tan(s·π/Tile Size)`, and samples wrap
+  around the layer. Quality above 1 takes one level more samples, as in
+  the source.
+- **Twist** rotates a point around the center by `Amount²·t³/100`
+  radians, where `t` falls from 1 at the center to 0 at Size times the
+  radius of the inscribed circle.
+- **Reduce Noise** computes, for each channel, the share of the
+  circle's values below the pixel's value (0…255); the pixel moves away
+  from it by `0.2·Strength`, less in light pixels.
+- **Glow** is a blur followed by Brightness / Contrast, applied with
+  Screen onto the layer.
+- **Red Eye Removal**: a saturated pixel whose red exceeds the other
+  channels by more than Tolerance gets a red value equal to its
+  luminance, scaled by Saturation %.
+- **Soften Portrait** is a blur with radius `3·Softness` and
+  Brightness / Contrast (Lighting, −Lighting/2), applied with Overlay
+  onto a gray layer that is warmed by Warmth % (more red, less blue).
+- **Clouds** is up to 12 octaves of Perlin noise from the center of the
+  layer; the first octave is Scale pixels, and each subsequent one is
+  half as large and Power times weaker. In the source, clouds run from
+  the primary color to the secondary color. A core effect does not see
+  the user colors, so it draws from black to white (Paint.NET's default
+  colors) and applies the result to the layer with Blend Mode.
+- **Julia Fractal** renders the Julia set for `c = 0.3125 + 0.03i`,
+  with up to 256 iterations and a smoothed counter. As counter·Factor
+  passes 0, 256, 512 and 768, it turns on alpha, red, green and blue in
+  turn.
+- **Mandelbrot Fractal** renders the neighbourhood of `(−0.7, −0.29)`,
+  magnified `1 + 20·Zoom` times, with up to `1024/Factor` iterations;
+  the value `64 + Factor·counter` likewise turns on alpha, blue, green
+  and red. Points inside the set are white (black with Invert Colors).
+  The core does not iterate points in the main cardioid and the
+  period-2 bulb, and it stops an orbit that returns closer than 10⁻⁶ to
+  a stored point (a cycle). It iterates the remaining orbits eight at a
+  time side by side, in blocks of 16 iterations, and repeats the block
+  in which an orbit escaped one iteration at a time, so the counters
+  match the source.
+- **Relief** is the Edge Detect kernel with a center weight of 1, so
+  the image remains under the relief of its edges.
 
-Ефекти з центром (Bulge, Twist, Zoom і Radial Blur, фрактали, Clouds)
-центруються на шарі, як у джерелі; Dents і Polar Inversion (у джерелі
-`WarpEffectBase`) — на межах виділення.
+Effects with a center (Bulge, Twist, Zoom Blur and Radial Blur, the
+fractals, Clouds) are centered on the layer, as in the source; Dents
+and Polar Inversion (`WarpEffectBase` in the source) are centered on
+the selection bounds.
 
-## Буфер обміну
+## Clipboard
 
-| Команда | Клавіша | Поведінка |
+| Command | Key | Behaviour |
 |---|---|---|
-| Cut | Ctrl+X, Shift+Delete | Copy, потім Erase Selection (виділення знімається). |
-| Copy | Ctrl+C, Ctrl+Insert | Пікселі активного шару в рамці виділення, поза фігурою — прозорі. |
-| Paste | Ctrl+V, Shift+Insert | Вставлене стає піднятим фрагментом інструмента Move Selected Pixels на активному шарі (інструмент перемикається на нього). Фрагмент, що цілком уміщається в полотно, стає на своє місце; інакше — у центр полотна; вид прокручується до нього. Зображення з чужої програми має місце (0, 0). Фрагмент, більший за полотно, — пропозиція збільшити полотно. |
-| Paste into New Layer | Ctrl+Shift+V | Те саме на новому шарі. |
-| Paste into New Image | Ctrl+Alt+V | Новий документ розміру фрагмента. |
+| Cut | Ctrl+X, Shift+Delete | Copy, then Erase Selection (the selection is cleared). |
+| Copy | Ctrl+C, Ctrl+Insert | Copies the active layer's pixels within the selection's bounding box; pixels outside the shape are transparent. |
+| Paste | Ctrl+V, Shift+Insert | The pasted image becomes a lifted fragment of the Move Selected Pixels tool on the active layer (the program switches to that tool). A fragment that fits entirely within the canvas goes to its original position; otherwise it goes to the center of the canvas, and the view scrolls to it. An image from another program has position (0, 0). A fragment larger than the canvas prompts an offer to enlarge the canvas. |
+| Paste into New Layer | Ctrl+Shift+V | The same, on a new layer. |
+| Paste into New Image | Ctrl+Alt+V | Creates a new document the size of the fragment. |
 
-Ядро працює з буфером як зі значенням (фрагмент пікселів і його
-місце); системний буфер обміну — справа оболонки.
+The core treats clipboard contents as a value (a pixel fragment and its
+position); the system clipboard is the front end's responsibility.
 
-## Вікна, меню й вид
+## Windows, menus and view
 
-### Вікна
+### Windows
 
-| Вікно | Клавіша | Вміст |
+| Window | Key | Contents |
 |---|---|---|
-| Tools | F5 | Кнопки інструментів у порядку таблиці; підказка — назва і клавіша. |
-| History | F6 | Кроки історії, кнопки переходу. |
-| Layers | F7 | Шари зверху вниз з мініатюрою й прапорцем видимості; кнопки Add, Delete, Duplicate, Merge Down, Move Up, Move Down, Properties. |
-| Colors | F8 | Основний і додатковий, колесо кольору, повзунки RGB/HSV/альфа, hex, палітра. |
+| Tools | F5 | Tool buttons in the order of the tools table; the tooltip shows the name and key. |
+| History | F6 | History steps and navigation buttons. |
+| Layers | F7 | Layers from top to bottom with a thumbnail and a visibility check box; buttons Add, Delete, Duplicate, Merge Down, Move Up, Move Down, Properties. |
+| Colors | F8 | Primary and secondary colors, color wheel, RGB/HSV/alpha sliders, hex, palette. |
 
-Над полотном — панель параметрів активного інструмента (Tool Config
-Strip). Вікна плаваючі, напівпрозорі, коли курсор над полотном.
+Above the canvas is the active tool's settings bar (the Tool Config
+Strip). The windows float and become semi-transparent while the cursor
+is over the canvas.
 
-### Меню
+### Menus
 
-| Меню | Пункти й клавіші |
+| Menu | Items and keys |
 |---|---|
 | File | New Ctrl+N, Open Ctrl+O, Close Ctrl+W, Save Ctrl+S, Save As Ctrl+Shift+S, Print Ctrl+P, Exit |
 | Edit | Undo Ctrl+Z, Redo Ctrl+Y, Cut, Copy, Paste, Paste into New Layer, Paste into New Image, Erase Selection Del, Fill Selection Backspace, Invert Selection Ctrl+I, Select All Ctrl+A, Deselect Ctrl+D |
-| View | Zoom In Ctrl++, Zoom Out Ctrl+−, Zoom to Window Ctrl+B, Zoom to Selection Ctrl+Shift+B, Actual Size Ctrl+Shift+A (і Ctrl+Alt+0), Grid, Rulers, одиниці |
+| View | Zoom In Ctrl++, Zoom Out Ctrl+−, Zoom to Window Ctrl+B, Zoom to Selection Ctrl+Shift+B, Actual Size Ctrl+Shift+A (and Ctrl+Alt+0), Grid, Rulers, units |
 | Image | Crop to Selection Ctrl+Shift+X, Resize Ctrl+R, Canvas Size Ctrl+Shift+R, Flip Horizontal, Flip Vertical, Rotate 90° CW Ctrl+H, Rotate 90° CCW Ctrl+G, Rotate 180° Ctrl+J, Flatten Ctrl+Shift+F |
-| Layers | Див. «Команди шарів» |
-| Adjustments | Див. «Коригування» |
-| Effects | Repeat Ctrl+F, підменю як у таблиці ефектів |
-| Window | Tools F5, History F6, Layers F7, Colors F8, наступна/попередня вкладка Ctrl+Tab / Ctrl+Shift+Tab |
+| Layers | See "Layer commands" |
+| Adjustments | See "Adjustments" |
+| Effects | Repeat Ctrl+F; submenus as in the effects table |
+| Window | Tools F5, History F6, Layers F7, Colors F8, next/previous tab Ctrl+Tab / Ctrl+Shift+Tab |
 | Help | Help F1 |
 
-Resize змінює розмір зображення (усі шари) з передискретизацією;
-Canvas Size змінює полотно без масштабу з якорем (дев'ять положень),
-нова площа прозора (у шарі Background — додатковим кольором).
+Resize changes the image size (all layers) with resampling. Canvas
+Size changes the canvas without scaling, using an anchor (nine
+positions); the new area is transparent (filled with the secondary
+color in the Background layer).
 
-### Масштаб і прокрутка
+### Zoom and scrolling
 
-- Масштаби Zoom In / Zoom Out — сходинки 1, 2, 3, 4, 5, 6, 8, 12, 16,
-  25, 33, 50, 66, 100, 200, 300 … 800, 1200, 1600, 2400, 3200%.
-- Колесо миші прокручує вертикально на 120 пікселів екрана за поділку,
-  Shift+колесо — горизонтально, Ctrl+колесо (лише Ctrl) — плавний
-  масштаб навколо курсора (×1,12 на поділку, не сходинками).
-- Клавіша вимкненої команди (Delete без виділення тощо) нічого не
-  робить і не завершує живий градієнт чи переміщення.
-- Поза полотном — сіре тло; прозорість у полотні — шахівниця.
+- Zoom In and Zoom Out step through 1, 2, 3, 4, 5, 6, 8, 12, 16, 25,
+  33, 50, 66, 100, 200, 300, 400, 500, 600, 700, 800, 1200, 1600, 2400
+  and 3200%.
+- The mouse wheel scrolls vertically by 120 screen pixels per notch,
+  Shift+wheel scrolls horizontally, and Ctrl+wheel (Ctrl alone) zooms
+  smoothly around the cursor (×1.12 per notch, not in steps).
+- The key of a disabled command (such as Delete with no selection) does
+  nothing and does not finish a live gradient or move.
+- The area outside the canvas is gray; transparency inside the canvas
+  is shown as a checkerboard.
 
-### Рядок стану
+### Status bar
 
-Підказка активного інструмента; координати курсора; розмір виділення;
-одиниці (пікселі, дюйми, сантиметри); масштаб; хід довгої операції.
+The status bar shows the active tool's hint, the cursor coordinates,
+the selection size, the units (pixels, inches, centimeters), the zoom
+level and the progress of a long operation.
 
-## Файли
+## Files
 
-| Формат | Читання | Запис | Що зберігає |
+| Format | Read | Write | What it stores |
 |---|---|---|---|
-| OpenRaster `.ora` | так | так | Шари з назвами, видимістю, прозорістю, режимами. Власний формат Paintbox. |
-| PNG | так | так | Плоске зображення з альфою. |
-| JPEG | так | так | Плоске, без альфи (накладається на білий), якість 95. |
-| BMP | так | так | Плоске. |
-| TGA | так | так | Плоске з альфою. |
-| WebP | так | так | Плоске з альфою; запис без втрат. |
+| OpenRaster `.ora` | yes | yes | Layers with names, visibility, opacity and blend modes. Paintbox's native format. |
+| PNG | yes | yes | A flat image with alpha. |
+| JPEG | yes | yes | A flat image without alpha (composited onto white), quality 95. |
+| BMP | yes | yes | A flat image. |
+| TGA | yes | yes | A flat image with alpha. |
+| WebP | yes | yes | A flat image with alpha; written losslessly. |
 
-Плоский файл відкривається документом з одним шаром «Background»;
-плоске збереження складає видимі шари в одне зображення. GIF, TIFF і
-DDS, які відкриває Paint.NET 3.36, свідомо не взяті.
+A flat file opens as a document with a single "Background" layer; flat
+saving composites the visible layers into one image. GIF, TIFF and DDS,
+which Paint.NET 3.36 can open, were deliberately left out.
 
 ### OpenRaster
 
-`.pdn` сучасного Paint.NET закритий; `.pdn` версії 3 описано в коді
-OpenPDN (заголовок `PDN3`, XML-заголовок і стиснуті gzip шматки), але
-властивості шарів у ньому — двійкова .NET-серіалізація. Тому шаровий
-формат Paintbox — OpenRaster: відкритий, його читають GIMP, Krita,
-MyPaint.
-Файл — zip:
+The `.pdn` format of current Paint.NET is closed. Version 3 `.pdn` is
+described in the OpenPDN code (a `PDN3` header, an XML header and
+gzip-compressed chunks), but its layer properties use binary .NET
+serialization. Paintbox therefore uses OpenRaster as its layered
+format: it is open and is read by GIMP, Krita and MyPaint. The file is
+a zip archive:
 
 ```
-mimetype              перший, без стиснення: "image/openraster"
-stack.xml             <image w h version="0.0.3"><stack> шари зверху вниз </stack></image>
-data/layer0.png …     PNG на шар, straight RGBA
-mergedimage.png       плоский результат
-Thumbnails/thumbnail.png   не більше 256 × 256
+mimetype              first, uncompressed: "image/openraster"
+stack.xml             <image w h version="0.0.3"><stack> layers from top to bottom </stack></image>
+data/layer0.png …     one PNG per layer, straight RGBA
+mergedimage.png       the flattened result
+Thumbnails/thumbnail.png   at most 256 × 256
 ```
 
-Атрибути шару: `name`, `src`, `x`, `y`, `opacity` (0…1),
-`visibility` (`visible` / `hidden`), `composite-op`. Відповідність
-режимів:
+Layer attributes: `name`, `src`, `x`, `y`, `opacity` (0…1),
+`visibility` (`visible` / `hidden`), `composite-op`. Blend modes map as
+follows:
 
-| Режим | `composite-op` |
+| Mode | `composite-op` |
 |---|---|
 | Normal | `svg:src-over` |
 | Multiply | `svg:multiply` |
@@ -635,241 +683,270 @@ Thumbnails/thumbnail.png   не більше 256 × 256
 | Screen | `svg:screen` |
 | Reflect, Glow, Negation, Xor | `paintbox:reflect`, `paintbox:glow`, `paintbox:negation`, `paintbox:xor` |
 
-`svg:xor` в OpenRaster — це Porter-Duff XOR, а не побітовий Xor
-Paint.NET, тому Xor записується власним ім'ям. Невідомий режим під час
-читання стає Normal. Вкладені стоси (групи Krita) читаються як плоский
-перелік шарів без властивостей груп. Шар, менший за полотно, ставиться
-за `x`, `y`.
+In OpenRaster, `svg:xor` is the Porter-Duff XOR, not Paint.NET's
+bitwise Xor, so Xor is written under its own name. An unknown mode
+becomes Normal when reading. Nested stacks (Krita groups) are read as
+a flat list of layers, without the group properties. A layer smaller
+than the canvas is placed at `x`, `y`.
 
-## Рішення
+## Decisions
 
-- **Straight RGBA8** — див. «Формат пікселів».
-- **Виділення — маска 0–255 з ознакою «є виділення»**, а не
-  многокутники: операції об'єднання попіксельні, GPC не потрібна.
-  Інструменти виділення дають різкий край (0 чи 255), як відсікання
-  Paint.NET; проміжні значення лишено для розмиття краю в майбутньому.
-  Ознака потрібна, бо «виділено нуль пікселів» і «нічого не виділено»
-  поводяться по-різному. Контур виділення («мурашки») оболонка будує з
-  маски.
-- **Мазок через маску мазка.** Пензель, гумка, штамп і перефарбування
-  накопичують покриття мазка (максимум по сегментах) і щоразу
-  перескладають змінену ділянку від збереженого оригіналу. Тому
-  напівпрозорий мазок рівний, без «намистин» на стиках сегментів, які
-  дає Paint.NET 3.36.
-- **Твердість пензля** додано, хоч у 3.36 її немає.
-- **Історія плитками 64 × 64**: дія зберігає оригінал плитки при
-  першому дотику; при завершенні в крок ідуть лише плитки, що справді
-  змінились, «до» і «після».
-- **Шум з зерном**: Add Noise детермінований для тестів і повтору
-  (Ctrl+F дає той самий шум при тому самому зерні).
-- **Перцентиль без зсуву.** `GetPercentile` в OpenPDN і Pinta після
-  знайденого значення робить ще крок, тож медіана рівного тла 100 дає
-  101, і Median, Sharpen, Outline трохи світлішають при кожному
-  застосуванні. Ядро повертає саме знайдене значення.
-- **Gaussian Blur** рахується двома ковзними сумами по кожній осі в
-  дробових числах; результат відрізняється від цілочисельного джерела
-  не більше ніж на одиницю каналу, а час не залежить від радіуса.
-- **Правка з оригіналів.** Градієнт, фігури, заливка, коригування й
-  ефекти всередині відкритої правки (`begin_edit`) щоразу малюються від
-  збережених оригіналів плиток: так оболонка показує протяжку чи діалог
-  наживо, а історія отримує один крок. Дія, що нічого не змінила, кроку
-  не записує.
-- **Попередній перегляд для оболонки.** Усередині відкритої правки
-  виділення (протяжка в режимі Union чи Xor) поєднується з тим, з якого
-  правка почалась; діалог властивостей шару показує зміни через
-  `preview_layer_properties` і записує один крок на OK. Повільний ефект
-  оболонка рахує в робочому потоці з `effect_source` і вклеює
-  `apply_rendered`, щоб не морозити інтерфейс.
-- **Межі вводу.** Координати вказівника обмежено ±10⁶ пікселів,
-  NaN стає нулем, лінія олівця обрізається полотном; одна поверхня — не
-  більше 2²⁷ пікселів (512 МіБ), пам'ять береться з перевіркою, PNG у
-  файлі й записи zip читаються з обмеженням розміру. Так неправильний
-  ввід дає `Error`, а не паніку чи аварію процесу.
-- **Дрібні збіги з джерелом**: прозоре на прозорому дає прозорий
-  чорний; криві зрізають дріб (як `ClampToByte`), повторна точка кривої
-  заміняє попередню; Levels дозволяє однакові вихідні межі. Округлення
-  Sharpen, середнього кольору й світлоти Hue / Saturation (у джерелі
-  ділення на 256) лишаються в межах одиниці каналу.
-- **Права кнопка градієнта в режимі Transparency** просто міняє кольори
-  місцями, як у режимі Color; тонкощі джерела (обернення альф) — пізніше.
-- **Паралельність** — рядки ефектів і композиції діляться між потоками
-  `std::thread::scope`, без зовнішніх крейтів.
-- **Бібліотеки ядра**: `image` (кодеки PNG, JPEG, BMP, TGA, WebP),
-  `zip` (ORA), `serde`/`serde_json` (налаштування), `thiserror`.
-  XML `stack.xml` пишеться й читається вручну: формат малий.
-- **Текст** — `ab_glyph` з власною растеризацією контурів. Вбудований
-  шрифт — Manrope (SIL OFL, латиниця й кирилиця), системні — за назвою
-  родини: ядро один раз переглядає теки шрифтів системи (Windows, macOS,
-  Linux), читаючи лише таблиці `name` і `OS/2` кожного файлу. Звичайна
-  вага змінного шрифту — 400 (типовий екземпляр Manrope — 200), жирний —
-  жирне накреслення родини або вісь `wght` (700), інакше
-  гліф малюється двічі зі зсувом `розмір / 24`; курсив — курсивне
-  накреслення, інакше нахил 0,21 (як у GDI+). Підкреслення й
-  закреслення — смуги завтовшки `розмір / 16`. Курсор — напрямна
-  оверлею (дві точки), ручка руху — в лівому верхньому куті тексту.
-  Кожен гліф растеризується в межах свого прямокутника й лише там, де
-  видно полотно, тож великий текст коштує стільки, скільки видно; зміна,
-  яку не вдалося намалювати, відкочується. Esc
-  зберігає набране, як у Paint.NET 3.36.
-- **Наконечники й штрихи** Line / Curve — як перо GDI+ у Paint.NET:
-  стрілка — `AdjustableArrowCap(5, 5)`, п'ять товщин завдовжки й
-  завширшки, вістря на кінці лінії, лінія зупиняється біля основи;
-  Rounded — півколо; штрихи — довжини в товщинах пера (Dash 3–1,
-  Dash Dot 3–1–1–1, Dash Dot Dot 3–1–1–1–1–1, Dot 1–1), кінці рисок
-  плоскі, з'єднання круглі. `,` `.` `/` перебирають початок, штрих,
-  кінець.
-- **Назва** — Paintbox; «Paint.NET» не вживається ні в програмі, ні в
-  її файлах.
-- **Поворот і масштаб піднятого фрагмента** — перетворення навколо його
-  центру: зсув (цілі пікселі), кут і масштаб уздовж власних осей. Вісім
-  ручок (кути й середини сторін) — в оверлеї сесії, поки пікселі підняті;
-  ручка тягне свій бік, протилежний стоїть (Shift на куті — пропорційно);
-  права кнопка повертає (Shift — кроками 15°); перетягнутий через
-  протилежний бік — віддзеркалює. Під час руху — найближчий сусід,
-  при завершенні — Resampling панелі (Bilinear). Виділення
-  перетворюється тією самою вибіркою маски.
-- **Переміщення одним кроком.** Paint.NET 3.36 записує крок «Move
-  Pixels» на кожну протяжку чи зсув стрілкою і «Finish Pixels» при
-  завершенні; у нас усе від підйому до завершення — один крок «Move
-  Selected Pixels» (правка ядра лишається відкритою). Undo під час
-  переміщення повертає пікселі на місце одним кроком.
-- **Режим виділення фіксується при натисканні**, як у джерелі
-  (`SelectionTool`): Ctrl чи Alt, натиснуті посеред протяжки, режиму
-  не змінюють.
-- **Збереження в плоский формат** багатошарового зображення спершу
-  питає й зливає шари кроком «Flatten», як Paint.NET; Undo повертає
-  шари.
-- **Логіка оболонки в ядрі.** Інструменти, налаштування панелі, цикли
-  клавіш (літери, а не коди клавіш тулкіта), контролер жестів, команди
-  з доступністю й клавішами (назви клавіш egui), діалоги з переглядом і
-  скасування рендера ефекту живуть у `paintbox_core`, щоб кожна оболонка
-  мала ту саму поведінку. Відкрите зображення оболонки —
-  `Session` ядра (документ, контролер, діалог, утримувана кнопка,
-  збережений стан): міст лише перекладає типи. Скасований або застарілий рендер
-  зупиняється на наступному рядку (`Effect::render_cancellable`).
+- **Straight RGBA8**: see "Pixel format".
+- **The selection is a 0–255 mask with a "has selection" flag**, not a
+  set of polygons. Combine operations are per pixel, and GPC is not
+  needed. Selection tools produce a hard edge (0 or 255), like
+  Paint.NET's clipping; the intermediate values are kept for feathering
+  the edge in the future. The flag is needed because "zero pixels
+  selected" and "nothing selected" behave differently. The front end
+  builds the selection outline ("marching ants") from the mask.
+- **Strokes go through a stroke mask.** Paintbrush, Eraser, Clone Stamp
+  and Recolor accumulate the stroke's coverage (the maximum over
+  segments) and each time recomposite the changed area from the saved
+  original. As a result, a semi-transparent stroke is even, without the
+  "beads" at segment joints that Paint.NET 3.36 produces.
+- **Brush hardness** was added even though 3.36 does not have it.
+- **History in 64 × 64 tiles**: an action saves a tile's original the
+  first time it touches the tile; on completion, only the tiles that
+  actually changed go into the step, as "before" and "after".
+- **Seeded noise**: Add Noise is deterministic for testing and
+  repetition (Ctrl+F gives the same noise for the same seed).
+- **Percentile without the off-by-one.** `GetPercentile` in OpenPDN and
+  Pinta takes one more step after finding the value, so the median of a
+  flat background of 100 gives 101, and Median, Sharpen and Outline
+  lighten the image slightly on every application. The core returns the
+  value it found.
+- **Gaussian Blur** is computed with two running sums along each axis
+  in floating point. The result differs from the integer source by at
+  most one channel unit, and the running time does not depend on the
+  radius.
+- **Editing from originals.** Gradient, shapes, fill, adjustments and
+  effects inside an open edit (`begin_edit`) are redrawn each time from
+  the saved tile originals. This lets the front end show a drag or a
+  dialog live while history receives a single step. An action that
+  changed nothing records no step.
+- **Previews for the front end.** Inside an open edit, a selection (a
+  drag in Union or Xor mode) is combined with the selection the edit
+  started from. The Layer Properties dialog shows changes through
+  `preview_layer_properties` and records one step on OK. The front end
+  renders a slow effect on a worker thread from `effect_source` and
+  pastes the result with `apply_rendered`, so the interface does not
+  freeze.
+- **Input limits.** Pointer coordinates are limited to ±10⁶ pixels, NaN
+  becomes zero, and a pencil line is clipped to the canvas. A single
+  surface is at most 2²⁷ pixels (512 MiB), memory is allocated with a
+  check, and PNGs inside files and zip entries are read with a size
+  limit. Invalid input therefore produces an `Error`, not a panic or a
+  process crash.
+- **Small matches with the source**: transparent over transparent gives
+  transparent black; curves truncate fractions (like `ClampToByte`), and
+  a repeated curve point replaces the previous one; Levels allows equal
+  output bounds. Rounding in Sharpen, in average colors and in Hue /
+  Saturation lightness (where the source divides by 256) stays within
+  one channel unit.
+- **The right button for a gradient in Transparency mode** simply swaps
+  the colors, as in Color mode; the finer points of the source
+  (inverting the alphas) are left for later.
+- **Parallelism**: rows of effects and compositing are split between
+  threads with `std::thread::scope`, without external crates.
+- **Core libraries**: `image` (PNG, JPEG, BMP, TGA and WebP codecs),
+  `zip` (ORA), `serde`/`serde_json` (settings) and `thiserror`. The
+  `stack.xml` file is written and read by hand because the format is
+  small.
+- **Text** uses `ab_glyph` with its own outline rasterization. The
+  built-in font is Manrope (SIL OFL, Latin and Cyrillic); system fonts
+  are found by family name: the core scans the system font folders
+  once (Windows, macOS, Linux), reading only the `name` and `OS/2`
+  tables of each file. The regular weight of a variable font is 400
+  (Manrope's default instance is 200). Bold uses the family's bold face
+  or the `wght` axis (700); otherwise the glyph is drawn twice with an
+  offset of `size / 24`. Italic uses the italic face; otherwise the
+  glyph is slanted by 0.21 (as in GDI+). Underline and strikeout are
+  bars `size / 16` thick. The caret is an overlay guide (two points),
+  and the move handle is at the top-left corner of the text. Each glyph
+  is rasterized within its own rectangle and only where it overlaps the
+  canvas, so large text costs only as much as is visible; a change that
+  could not be drawn is rolled back. Esc keeps the typed text, as in
+  Paint.NET 3.36.
+- **Line / Curve caps and dashes** follow the GDI+ pen used by
+  Paint.NET. The arrow is `AdjustableArrowCap(5, 5)`: five widths long
+  and five wide, with the tip at the end of the line and the line
+  stopping at the arrow's base. Rounded is a semicircle. Dash lengths
+  are in pen widths (Dash 3–1, Dash Dot 3–1–1–1, Dash Dot Dot
+  3–1–1–1–1–1, Dot 1–1); dash ends are flat and joins are round.
+  `,` `.` `/` cycle the start cap, the dash style and the end cap.
+- **Name**: the program is called Paintbox; "Paint.NET" is not used in
+  the program or its files.
+- **Rotating and scaling a lifted fragment** is a transform around its
+  center: an offset (in whole pixels), an angle and a scale along the
+  fragment's own axes. Eight handles (corners and side midpoints) are
+  in the session overlay while the pixels are lifted. A handle drags
+  its own side while the opposite side stays fixed (Shift on a corner
+  scales proportionally). The right button rotates (Shift snaps to 15°
+  steps). Dragging a side past the opposite side mirrors the fragment.
+  While moving, nearest-neighbour sampling is used; on finishing, the
+  tool strip's Resampling (Bilinear) is used. The selection is
+  transformed with the same sampling of its mask.
+- **Moving as a single step.** Paint.NET 3.36 records a "Move Pixels"
+  step for each drag or arrow-key nudge and a "Finish Pixels" step on
+  finishing. Paintbox records everything from lifting to finishing as a
+  single "Move Selected Pixels" step (the core's edit stays open).
+  Undo during a move puts the pixels back in one step.
+- **The selection mode is fixed when the button is pressed**, as in the
+  source (`SelectionTool`): Ctrl or Alt pressed in the middle of a drag
+  does not change the mode.
+- **Saving a multi-layer image to a flat format** first asks, then
+  merges the layers with a "Flatten" step, as Paint.NET does; Undo
+  restores the layers.
+- **Front-end logic lives in the core.** Tools, tool strip settings,
+  key cycles (by letter, not by toolkit key code), the gesture
+  controller, commands with their availability and keys (keys with
+  toolkit-neutral names), dialogs with preview, and cancellation of effect
+  rendering all live in `paintbox_core`, so every front end has the
+  same behaviour. An image open in the front end is a core `Session`
+  (document, controller, dialog, held button, saved state); the bridge
+  only translates types. A cancelled or outdated render stops at the
+  next row (`Effect::render_cancellable`).
 
-### У програмі на Flutter
+### In the Flutter program
 
-- **Літери інструментів.** Літера — та, що на клавіші, коли вона
-  латинська (AZERTY і QWERTZ лишаються своїми, як у джерелі, що порівнює
-  набраний символ); коли ні (українська розкладка, Ctrl+Я), — за місцем
-  клавіші на розкладці US. Утримувана клавіша повторюється для стрілок,
-  дужок і команд з Ctrl (Ctrl+Z), але не для літер: утримана S не
-  перебирає інструменти. Поки натиснуто будь-яку кнопку миші (і під час
-  протяжок виду), літери не діють.
-- **Середня кнопка — Pan у кожному інструменті** (у 3.36 — лише в
-  Zoom). Поки натиснуто кнопку інструмента, ні середня кнопка, ні пробіл
-  протяжку не перехоплюють: друга кнопка лишається за ядром (рух фігури).
-- **Пробіл + права кнопка** — безперервна прокрутка в бік курсора; у
-  OpenPDN 3.36 її немає (у режимі Pan там діє лише ліва), додано, як у
-  пізніших версіях.
-- **Колесо й тачпад.** Поділка колеса нормується на масштаб дисплея
-  (×1,12 на поділку за будь-якого масштабу); Ctrl+колесо — лише Ctrl, без
-  Alt; Shift+колесо — убік (і там, де система сама робить з нього
-  горизонтальну прокрутку). Два пальці на тачпаді прокручують, щипок —
-  масштаб про точку між пальцями.
-- **Вставка й імпорт, більші за полотно**, питають, чи збільшити полотно
-  (від лівого верхнього кута, нова площа прозора або, у шарі Background,
-  додатковим кольором), як Paint.NET; «Ні» вставляє як є, закриття питання
-  — нічого.
-- **Один файл за раз.** Поки файл читається чи пишеться, Open, Save,
-  Save As, Close і Exit недоступні; малювати можна далі — пишеться знімок
-  шарів на мить збереження, і саме цей стан вважається збереженим.
-- **Діалоги з переглядом** — над полотном угорі по центру, без
-  затемнення; поки діалог відкритий, полотно, інструменти, історія й
-  клавіші чекають (Enter — OK, Esc — Cancel).
-- **Верх вікна — як у Paint.NET 5.** У рядку меню — File, Edit, View,
-  Image, Layers, Adjustments, Effects; Window і Help стали кнопками в
-  правому куті (Tools, History, Layers, Colors, налаштування, довідка) в
-  один ряд із пунктами меню, пункт меню заввишки з кнопку. Наступна й
-  попередня вкладка — лише клавішами Ctrl+Tab / Ctrl+Shift+Tab і кліком.
-- **Вкладки зображень** — мініатюра з назвою файлу під нею; ширину задає
-  мініатюра (форма полотна), а не назва, тож довга назва скорочується
-  «…» посередині (кінець — номер чи розширення — лишається), ціла — у
-  підказці. Після вкладок, як у Paint.NET 5, кнопка «▾»: відкриті
-  зображення з позначкою активного, наступне й попереднє.
-- **Перетягування.**
-  - Файли, кинуті у вікно, відкриваються кожен новою вкладкою, теки
-    пропускаються (як `MainForm.OnDragDrop` 3.36, але без його питання
-    «Open / Import as layers»: імпорт шарами — Layers > Import From File).
-    Поки файли над вікном — підказка «Відкрити».
-  - Картинка з браузера чи іншої програми приходить файлом (`CF_HDROP`;
-    браузер кладе його в тимчасову теку системи). Такий файл відкривається
-    без назви, щоб Save спитав, куди зберегти, як Pinta робить для
-    джерела `http`. Посилання чи растр без файлу не приймаються: модуль
-    перетягування читає лише файли.
-  - Вкладку можна перетягнути на інше місце смуги, шар — на інше місце
-    у вікні Layers. Елемент їде за вказівником уздовж списку, його місце
-    напівпрозоре, а лінія акценту в проміжку показує, куди він стане;
-    відпущений поруч із собою він не рухається. Шар переноситься одним
-    кроком історії (Move Layer Up чи Down за напрямком), активним стає
-    перенесений шар.
-  - Зразок палітри, кинутий на основний чи додатковий колір, стає ним;
-    квадрат під зразком підсвічується.
-  - Плаваюче вікно тягнуть за заголовок; його місце (зсув від свого кута)
-    пам'ятається між запусками.
-  - Вид полотна рухає протяжка середньою кнопкою або лівою з пробілом.
-- **Colors: More і Less.** More — колесо, повзунки RGB, HSV, hex і
-  непрозорість, уся палітра (96). Less — колесо, під ним повзунок
-  непрозорості й hex, палітра два ряди по вісім; ніщо не ширше за колесо.
-  Режим запам'ятовується.
-- **Панель параметрів: іконка чи назва.** Правило виведене з
-  `ToolConfigStrip` OpenPDN 3.36: значення, які розрізняє малюнок і яких
-  кілька, — іконки (`ToolStripSplitButton` з `DisplayStyle.Image` або
-  ряд `ToolStripButton`); значення, яких багато або які малюнком не
-  розрізнити, — назва вибраного у випадному списку
-  (`ComboBoxStyle.DropDownList`); число — поле; частка — повзунок. Групи
-  розділено рискою (`ToolStripSeparator`), підпис стоїть там, де він є в
-  джерелі. Split button 3.36 тут — ряд кнопок, де вибрана підсвічена (як
-  у Paint.NET 5), якщо ряд не надто довгий; наконечники й штрих ліній
-  лишаються іконкою з меню, бо три ряди по 4–5 кнопок перевантажили б
-  панель. Вибране значення ряду — у кольорі акценту на підсвіченій
-  кнопці, решта — приглушені.
+- **Tool letters.** The letter is the one on the key when it is Latin
+  (AZERTY and QWERTZ keep their own letters, as in the source, which
+  compares the typed character). When it is not (for example, a
+  Ukrainian layout, or Ctrl+Я), the key's position on the US layout is
+  used. A held key repeats for arrow keys, brackets and Ctrl commands
+  (Ctrl+Z), but not for letters: holding S does not cycle through
+  tools. While any mouse button is pressed (and during view drags),
+  letters have no effect.
+- **The middle button pans in every tool** (in 3.36, only in Zoom).
+  While a tool's button is held, neither the middle button nor Space
+  takes over the drag: the other button stays with the core (moving the
+  shape).
+- **Space + right button** scrolls continuously toward the cursor.
+  OpenPDN 3.36 does not have this (in Pan mode only the left button
+  works there); it was added as in later versions.
+- **Wheel and touchpad.** A wheel notch is normalized to the display
+  scale (×1.12 per notch at any scale). Ctrl+wheel requires Ctrl alone,
+  without Alt. Shift+wheel scrolls sideways (including where the system
+  itself turns it into horizontal scrolling). Two fingers on a touchpad
+  scroll, and a pinch zooms around the point between the fingers.
+- **Pasting and importing an image larger than the canvas** asks
+  whether to enlarge the canvas (from the top-left corner; the new area
+  is transparent or, in the Background layer, the secondary color), as
+  Paint.NET does. "No" pastes the image as is; dismissing the prompt
+  does nothing.
+- **One file at a time.** While a file is being read or written, Open,
+  Save, Save As, Close and Exit are unavailable. Painting can continue:
+  the program writes a snapshot of the layers taken at the moment of
+  saving, and that state is the one considered saved.
+- **Dialogs with preview** appear above the canvas at the top center,
+  without dimming. While a dialog is open, the canvas, tools, history
+  and keys wait (Enter is OK, Esc is Cancel).
+- **The top of the window follows Paint.NET 5.** The menu bar holds
+  File, Edit, View, Image, Layers, Adjustments and Effects. Window and
+  Help became buttons in the right corner (Tools, History, Layers,
+  Colors, settings, help) on the same row as the menu items, and each
+  menu item is as tall as a button. Next and previous tab are available
+  only through Ctrl+Tab / Ctrl+Shift+Tab and by clicking.
+- **Image tabs** show a thumbnail with the file name below it. The
+  thumbnail (the shape of the canvas) sets the width, not the name, so
+  a long name is shortened with "…" in the middle (the end, a number or
+  extension, is kept), and the full name is in the tooltip. After the
+  tabs, as in Paint.NET 5, a "▾" button lists the open images with the
+  active one marked, plus next and previous.
+- **Drag and drop.**
+  - Files dropped onto the window each open in a new tab; folders are
+    skipped. This matches `MainForm.OnDragDrop` in 3.36, but without
+    its "Open / Import as layers" question: to import as layers, use
+    Layers > Import From File. While files are over the window, an
+    "Open" hint is shown.
+  - An image from a browser or another program arrives as a file
+    (`CF_HDROP`; the browser puts it in the system's temporary
+    folder). Such a file opens without a name, so that Save asks where
+    to save it, as Pinta does for an `http` source. Links and raster
+    data without a file are not accepted: the drag-and-drop module
+    reads only files.
+  - A tab can be dragged to another place in the tab strip, and a
+    layer to another place in the Layers window. The item follows the
+    pointer along the list, its original slot is semi-transparent, and
+    an accent line in the gap shows where it will land; released next
+    to itself, it does not move. A layer is moved in one history step
+    (Move Layer Up or Down, depending on the direction), and the moved
+    layer becomes active.
+  - A palette swatch dropped onto the primary or secondary color
+    becomes that color; the square under the swatch is highlighted.
+  - A floating window is dragged by its title bar; its position (the
+    offset from its corner) is remembered between runs.
+  - The canvas view is moved by dragging with the middle button, or
+    with the left button while holding Space.
+- **Colors: More and Less.** More shows the wheel, the RGB and HSV
+  sliders, hex and opacity, and the whole palette (96). Less shows the
+  wheel with the opacity slider and hex below it, and the palette in
+  two rows of eight; nothing is wider than the wheel. The mode is
+  remembered.
+- **Tool strip: icon or name.** The rule is derived from OpenPDN 3.36's
+  `ToolConfigStrip`. Values that a picture can distinguish, and of
+  which there are few, are icons (a `ToolStripSplitButton` with
+  `DisplayStyle.Image`, or a row of `ToolStripButton`s). Values of which
+  there are many, or that a picture cannot distinguish, are shown as
+  the selected name in a drop-down list (`ComboBoxStyle.DropDownList`).
+  A number is a field, and a fraction is a slider. Groups are separated
+  by a divider (`ToolStripSeparator`), and labels appear where the
+  source has them. A 3.36 split button becomes a row of buttons with
+  the selected one highlighted (as in Paint.NET 5), unless the row
+  would be too long. Line caps and dash style remain an icon with a
+  menu, because three rows of 4–5 buttons would overload the strip.
+  The selected value in a row is drawn in the accent color on a
+  highlighted button; the rest are muted.
 
-  | Параметр | У 3.36 | Тут |
+  | Setting | In 3.36 | Here |
   |---|---|---|
-  | Selection Mode (5) | split button, іконка; підпис | ряд іконок; підпис |
-  | Розмір виділення (Normal, Fixed Ratio, Fixed Size) | split button, іконка й текст; підпис | випадний список з іконкою й назвою; підпис |
-  | Ширина й висота виділення | текстові поля, кнопка обміну | поля з − і +, кнопка обміну |
-  | Flood Mode (2) | split button, іконка; підпис | ряд іконок; підпис |
-  | Tolerance | повзунок; підпис | повзунок із відсотками; підпис |
-  | Brush Width | поле зі списком, кнопки − і +; підпис | поле з − і +; підпис |
-  | Hardness (з 4.x) | — | повзунок; підпис |
-  | Тип фігури (3) | split button, іконка, клік перебирає; перед шириною | ряд іконок; перед шириною |
-  | Тип градієнта (5) | ряд кнопок з іконками, вибрана відмічена | ряд іконок |
-  | Канали градієнта (Color, Transparency) | split button, іконка | ряд іконок |
-  | Наконечники початку й кінця (4), штрих (5) | split button, іконка; підпис «Style» | іконка з меню (іконки й назви); підпис |
-  | Antialiasing, Alpha Blending | split button, іконка змінюється зі станом | одна кнопка, іконка змінюється, увімкнена підсвічена |
-  | Шрифт | список з назвою; підпис | список з назвою; підпис |
-  | Розмір шрифту | поле зі списком розмірів | поле з − і + |
-  | Bold, Italic, Underline (і тут Strikeout) | кнопки з іконками | кнопки з іконками |
-  | Вирівнювання (3) | ряд кнопок з іконками | ряд іконок |
-  | Resampling | список з назвою; підпис | список з назвою; підпис |
-  | Піпетка: після кліку (3) | список з назвою; підпис | список з назвою; підпис |
-  | Fill (суцільна чи штрихування) | список з назвою й зразком; підпис | немає: ядро малює лише суцільну заливку |
-  | Згладжування шрифту (Smooth, Sharp) | список з назвою | немає: замість нього Antialiasing |
-  | Одиниці розміру виділення | список з назвою | немає: розмір лише в пікселях |
+  | Selection Mode (5) | split button, icon; label | row of icons; label |
+  | Selection size mode (Normal, Fixed Ratio, Fixed Size) | split button, icon and text; label | drop-down list with icon and name; label |
+  | Selection width and height | text fields, swap button | fields with − and +, swap button |
+  | Flood Mode (2) | split button, icon; label | row of icons; label |
+  | Tolerance | slider; label | slider with percent; label |
+  | Brush Width | combo box, − and + buttons; label | field with − and +; label |
+  | Hardness (from 4.x) | — | slider; label |
+  | Shape type (3) | split button, icon, click cycles; before the width | row of icons; before the width |
+  | Gradient type (5) | row of icon buttons, selected one checked | row of icons |
+  | Gradient channels (Color, Transparency) | split button, icon | row of icons |
+  | Start and end caps (4), dash style (5) | split button, icon; label "Style" | icon with a menu (icons and names); label |
+  | Antialiasing, Alpha Blending | split button, icon changes with state | single button, icon changes, highlighted when on |
+  | Font | list with name; label | list with name; label |
+  | Font size | combo box with a list of sizes | field with − and + |
+  | Bold, Italic, Underline (and here Strikeout) | icon buttons | icon buttons |
+  | Alignment (3) | row of icon buttons | row of icons |
+  | Resampling | list with name; label | list with name; label |
+  | Color Picker: after click (3) | list with name; label | list with name; label |
+  | Fill (solid or hatch) | list with name and sample; label | none: the core paints only solid fills |
+  | Font smoothing (Smooth, Sharp) | list with name | none: Antialiasing is used instead |
+  | Selection size units | list with name | none: size is in pixels only |
 
-## Відкрите
+## Open items
 
-- **Поворот і масштаб контуру** (Move Selection) і Layer Rotate / Zoom —
-  ядро вміє їх лише для піднятих пікселів.
-- **Криві інструмента Line / Curve** — ядро растеризує ламану, сплайн
-  і Безьє за точками; редагування ручками — справа оболонки.
-- **Згладжування заливки** (Paint Bucket з Antialiasing) — ядро заливає
-  без згладження краю.
-- **Vignette** (Photo) — файл є серед джерел 3.36, але не входить у
-  збірку ефектів, тож у меню 3.36 його немає; ядро його не має.
-- **Пензлі-штрихування** (Brush Type: hatch) Paint.NET — не перенесено.
-- **Одиниці й DPI** документа — не зберігаються. Від них залежать
-  рядок стану і Fixed Size у Rectangle Select; ORA `xres`/`yres` дає
-  лише DPI, одиниці показу — налаштування програми.
-- **Resize**: ядро вміє Nearest і Bilinear (зі згладжуванням при
-  зменшенні); замок пропорцій і відсотки — справа діалогу оболонки.
-- **Імпорт `.pdn` 3.x** лише для читання — можливий пізніше.
-- **Множинний вибір шарів** (Ctrl+клацання у вікні Layers) — справа
-  оболонки; команди ядра діють на активний шар.
-- **Дрібниці оболонки, яких ще немає**: Ctrl-дотик (до 400 мс) ховає
-  ручки живого градієнта; Shift+клацання Recolor зсуває другий колір на
-  ту саму різницю; стрілки в інших інструментах рухають курсор миші;
-  Print (Ctrl+P); Ctrl+PageUp / PageDown і Ctrl+F4 для вкладок.
+- **Rotating and scaling the selection outline** (Move Selection) and
+  Layer Rotate / Zoom: the core can do this only for lifted pixels.
+- **Curves of the Line / Curve tool**: the core rasterizes the
+  polyline, spline and Bézier curve from the points; editing with
+  handles is the front end's responsibility.
+- **Fill antialiasing** (Paint Bucket with Antialiasing): the core
+  fills without an antialiased edge.
+- **Vignette** (Photo): the file is among the 3.36 sources but is not
+  part of the effects build, so 3.36 has no such menu item; the core
+  does not implement it.
+- **Hatch brushes** (Brush Type: hatch) from Paint.NET have not been
+  ported.
+- **Document units and DPI** are not stored. The status bar and Fixed
+  Size in Rectangle Select depend on them; ORA `xres`/`yres` gives only
+  the DPI, and the display units are a program setting.
+- **Resize**: the core supports Nearest and Bilinear (with smoothing
+  when downscaling); the aspect-ratio lock and percentages are up to
+  the front end's dialog.
+- **Read-only `.pdn` 3.x import** may be added later.
+- **Multiple layer selection** (Ctrl+click in the Layers window) is the
+  front end's responsibility; core commands act on the active layer.
+- **Front-end details not yet implemented**: a Ctrl tap (up to 400 ms)
+  hides the live gradient's handles; Shift+click with Recolor shifts
+  the second color by the same difference; arrow keys in other tools
+  move the mouse cursor; Print (Ctrl+P); Ctrl+PageUp / PageDown and
+  Ctrl+F4 for tabs.

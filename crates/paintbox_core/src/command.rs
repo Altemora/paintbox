@@ -1,6 +1,6 @@
 //! Every menu item as a value, with its label and shortcut keys: the
 //! menu bar, the keyboard and the toolbar of any shell run the same
-//! commands. Keys are named as egui names them (`"Z"`, `"Delete"`,
+//! commands. Keys have toolkit-neutral names (`"Z"`, `"Delete"`,
 //! `"Plus"`, `"F4"`); a shell maps its own key codes to the names.
 //! [`Document::can_run`] and [`Document::run`] cover the commands that
 //! need only the image; files, the clipboard, windows and the view are
@@ -387,7 +387,7 @@ pub enum Command {
     Help,
 }
 
-/// A key with its modifiers; `key` as egui names it.
+/// A key with its modifiers; `key` is its toolkit-neutral name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Shortcut {
     pub ctrl: bool,

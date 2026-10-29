@@ -423,7 +423,7 @@ class _EditorShellComponentState extends State<EditorShellComponent> {
   }
 }
 
-/// Flutter's keys under the names the core's shortcuts use (egui's).
+/// Flutter's keys under the toolkit-neutral names the core's shortcuts use.
 abstract final class KeyNames {
   static final Map<LogicalKeyboardKey, String> _named = {
     LogicalKeyboardKey.delete: 'Delete',

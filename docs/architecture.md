@@ -1,157 +1,183 @@
-# Paintbox: будова програми
+# Paintbox: architecture
 
-Paintbox — оболонка на Flutter (`app/`) над ядром `paintbox_core`
-(`crates/paintbox_core`). Поведінку інструментів, клавіш і меню описує
-[behaviour.md](behaviour.md); збірку й запуск —
-[building.md](building.md); правила коду — [CONTRIBUTING.md](../CONTRIBUTING.md).
+Paintbox is a Flutter program (`app/`) over a Rust core with no UI
+(`crates/paintbox_core`). This page describes how the pieces fit
+together. What the tools, keys and menus do is in
+[behaviour.md](behaviour.md); building and running are in
+[building.md](building.md); the code rules are in
+[CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## Репозиторій
+## Repository
 
-| Тека | Що в ній |
+| Path | Contents |
 |---|---|
-| `Cargo.toml` | Воркспейс Rust: ядро й міст. |
-| `crates/paintbox_core` | Ядро без інтерфейсу: документ, шари, змішування, виділення, історія, інструменти, коригування, ефекти, файли. |
-| `app/` | Програма на Flutter (melos-монорепо) з мостом до ядра. |
-| `tools/` | `check.ps1` (усі перевірки), `package-windows.ps1` (пакунки Windows), `make-icons.ps1` (значок програми). |
-| `packaging/` | Маніфести й скрипти пакунків Windows, Linux, macOS; значки. |
-| `docs/` | Документи: будова, збірка, поведінка, словник, залежності, знімки. |
+| `Cargo.toml` | The Rust workspace: the core and the bridge. |
+| `crates/paintbox_core` | The core: document, layers, blending, selection, history, tools, adjustments, effects, files. |
+| `app/` | The Flutter program (a melos monorepo) with the bridge to the core. |
+| `tools/` | `check.ps1` (all checks), `package-windows.ps1` (Windows packages), `make-icons.ps1` (the program icon). |
+| `packaging/` | Manifests and scripts for the Windows, Linux and macOS packages, and the icons. |
+| `docs/` | This documentation and the README screenshots (`docs/images`). |
 
-## Ядро
+## Core
 
-`paintbox_core` не знає про жоден тулкіт інтерфейсу: оболонка тримає
-`Session` на кожне відкрите зображення й лише перекладає свої типи в її
-виклики. Головні модулі:
+`paintbox_core` knows nothing about a UI toolkit. A front end keeps one
+`Session` per open image and only translates its own types into the
+session's calls, so behaviour such as "the other button during a drag
+moves the shape" or "Enter with nothing in progress deselects" lives in
+the core and is the same in any front end.
 
-| Модуль | Що в ньому |
+| Modules | Contents |
 |---|---|
-| `document`, `layer`, `blend` | Документ, стос шарів, 14 режимів змішування Paint.NET, композиція плитками. |
-| `selection`, `mask`, `select` | Виділення як маска з контуром, режими об'єднання, чарівна паличка. |
-| `history` | Історія кроками з плитками до й після зміни. |
-| `tool`, `tools`, `gesture`, `stroke`, `raster`, `text`, `typing` | Інструменти Paint.NET, контролер жестів, мазки, фігури, текст. |
-| `adjust`, `effects/` | Коригування й ефекти (розмиття, спотворення, шум, фото, рендер, стилізація, художні). |
-| `command`, `session`, `preview` | Команди меню з клавішами й доступністю, сесія зображення, діалог з переглядом на робочому потоці. |
-| `files`, `clipboard`, `palette` | OpenRaster і плоскі формати, буфер обміну, палітра. |
+| `document`, `layer`, `blend` | The document, the layer stack, Paint.NET's 14 blend modes, tiled compositing. |
+| `selection`, `mask`, `select` | The selection as a coverage mask with an outline, combine modes, the magic wand. |
+| `history` | Undo history that stores the tiles before and after each change. |
+| `tool`, `tools`, `gesture`, `stroke`, `raster`, `text`, `typing` | The Paint.NET tools, the gesture controller, strokes, shapes and text. |
+| `adjust`, `effects/` | Adjustments and effects (blurs, distortions, noise, photo, render, stylize, artistic). |
+| `command`, `session`, `preview` | Menu commands with keys and availability, the per-image session, previewing dialogs rendered on a worker thread. |
+| `files`, `clipboard`, `palette` | OpenRaster and flat image formats, the clipboard, the palette. |
 
-Тести ядра — у самих модулях і в `crates/paintbox_core/tests`
-(`shell_flow` проходить шлях оболонки, `perf_4k` — швидкість на 4K).
+The core's tests live next to the code and in
+`crates/paintbox_core/tests`: `shell_flow` walks the path a front end
+takes, and `perf_4k` checks speed on a 4K image.
 
-## Програма
+## Program
 
-Melos-монорепо на pub workspaces (melos 7): пакети `packages_tools` ←
-`packages_logic` ← `packages_ui`, кореневий `app/lib/` — композиційний
-корінь. Правила — [CONTRIBUTING.md](../CONTRIBUTING.md).
+The program is a melos monorepo on pub workspaces (melos 7). Packages
+form three layers, `packages_tools` ← `packages_logic` ← `packages_ui`,
+and `app/lib/` is the composition root.
 
-| Пакет | Що в ньому |
+| Package | Contents |
 |---|---|
-| `packages_tools/core` | `Failure` (sealed), `AppLog`, `injector`, `EventBusService` і `ShowFailureAction`. |
-| `packages_tools/paint_bridge` | Ядро для Dart: Rust-крейт `paintbox_bridge` (`rust/`, член воркспейсу Cargo в корені), згенеровані прив'язки (`lib/src/rust`), cargokit і плагін для Windows, Linux, macOS. |
-| `packages_logic/paint_logic` | `PaintCall` (збій ядра → `Failure` в одному місці), відкриті зображення (`ImagesRepository`), налаштування з нещодавніми файлами (`SettingsRepository`, JSON у теці підтримки програми), буфер обміну (`ClipboardRepository` над `pasteboard`), файлові діалоги (`file_selector`), вид полотна (`CanvasView`), каталог ядра (`PaintCatalog`). |
-| `packages_ui/app_ui` | Тема й токени, скляні поверхні, тости, діалоги, `ActionListener`, gen-l10n (uk — шаблон, en). |
-| `packages_ui/editor_ui` | Сторінка вікна, блок `EditorBloc`, компоненти (полотно, вікна Tools / Colors / History / Layers, меню, панель параметрів, вкладки, рядок стану, діалог з переглядом), віджети, діалоги розміру й збереження. |
-| `lib/` | `bootstrap` (міст, налаштування, DI, вікно через `window_manager`), `di.dart`, `PaintboxApp`, сцени знімків. |
+| `packages_tools/core` | `Failure` (sealed), `AppLog`, `injector`, `EventBusService` and `ShowFailureAction`. |
+| `packages_tools/paint_bridge` | The core for Dart: the Rust crate `paintbox_bridge` (`rust/`, a member of the root Cargo workspace), the generated bindings (`lib/src/rust`), Cargokit and the plugin for Windows, Linux and macOS. |
+| `packages_logic/paint_logic` | `PaintCall` (turns core failures into `Failure` in one place), open images (`ImagesRepository`), settings and recent files (`SettingsRepository`, JSON in the application support folder), the clipboard (`ClipboardRepository` over `pasteboard`), file dialogs (`file_selector`), the canvas view (`CanvasView`), the core's catalog (`PaintCatalog`). |
+| `packages_ui/app_ui` | Theme, tokens and accent palette, glass surfaces, toasts, dialogs, `ActionListener`, gen-l10n (English template and 24 translations). |
+| `packages_ui/editor_ui` | The window's page, `EditorBloc`, components (canvas, the Tools, Colors, History and Layers windows, menus, tool bar, tabs, status bar, previewing dialog), widgets, and the size and save dialogs. |
+| `lib/` | `bootstrap` (bridge, settings, dependency injection, the window through `window_manager`), `di.dart`, `PaintboxApp` (theme, accent and language), the screenshot scenes. |
 
-### Міст
+### Bridge
 
-`paintbox_bridge` — тонкий шар: логіки не має, лише перекладає типи.
-`PaintImage` — відкрите зображення, обгортка над `paintbox_core::Session`:
-документ ядра з контролером жестів, діалог з переглядом, утримувана
-кнопка й збережений стан. Тому дрібниці на кшталт «друга кнопка під час
-протяжки рухає фігуру», «Enter без живої дії знімає виділення», «діалог тримає полотно й команди», «відхилене
-значення Levels повертається, діалог лишається» живуть у ядрі й однакові в будь-якій оболонці над
-`Session`. Інструмент і налаштування панелі належать програмі, тож
-приходять у кожному виклику, якому потрібні; ефект для Ctrl+F —
-один на програму (сесія віддає застосований ефект через
-`take_applied_effect`). Звичайні типи ядра (`Tool`, `ToolSettings`,
-`Rgba8`, `LayerProperties`, перелічення налаштувань) віддзеркалено
-(`#[frb(mirror)]`): у Dart вони — згенеровані класи й enum, а не JSON.
-Параметри діалогів (повзунки, прапорці, зерно) ядро читає й пише з
-serde-форми ефекту (`paintbox_core::params`). Збої ядра стають
-`PaintError` з кодом ядра; команди, яким нема на чому діяти,
-відповідають `false`. Повідомлення про готовий рендер ефекту приходять
-потоком `previewWakes`, без опитування щокадру.
+`paintbox_bridge` is thin: it has no logic and only converts types.
+`PaintImage` is an open image and wraps `paintbox_core::Session`: the
+core document with its gesture controller, the previewing dialog, the
+held mouse button and the saved state. The active tool and the tool
+bar's settings belong to the program, so they come with each call that
+needs them. The effect that Ctrl+F repeats is shared by all images; the
+session hands over the applied effect through `take_applied_effect`.
 
-У `paint_logic` зображення читає `ImageSession`: один виклик
-`takeChange` бере в сесії ядра, що змінилось від попереднього разу
-(брудний прямокутник, шари, історія, виділення, доступність команд), і
-читає лише це — плитки, шари, історію, контур, набір доступних команд.
-Блок отримує готову `ImageChange` і не збирає стан з викликів моста
-сам.
+The core's plain types (`Tool`, `ToolSettings`, `Rgba8`,
+`LayerProperties`, the setting enums) are mirrored with
+`#[frb(mirror)]`, so Dart sees generated classes and enums rather than
+JSON. Dialog parameters (sliders, check boxes, the random seed) are read
+and written through the effect's serde form (`paintbox_core::params`).
+Core failures become `PaintError` with the core's code; commands with
+nothing to act on return `false`. A finished effect render is announced
+on the `previewWakes` stream, so nothing polls every frame.
 
-Виклики, що супроводжують жест чи команду, синхронні: їх порядок мусить
-зберігатися, а кожен — мілісекунди роботи ядра. Читання й запис файлів,
-кодування буфера обміну — асинхронні, на робочих потоках моста;
-збереження пише знімок шарів (`ImageSnapshot`), тож малювати можна далі.
+In `paint_logic`, `ImageSession` reads an image: one `takeChange` call
+asks the core what changed since the last call (dirty rectangle, layers,
+history, selection, command availability) and reads only that. The bloc
+receives a ready `ImageChange` and does not assemble state from bridge
+calls itself.
 
-### Полотно
+Calls that accompany a gesture or a command are synchronous, because
+their order matters and each costs milliseconds of core work. Reading
+and writing files and encoding the clipboard are asynchronous and run on
+the bridge's worker threads. Saving writes a snapshot of the layers
+(`ImageSnapshot`), so painting can continue during a save.
 
-Після кожної дії (для руху вказівника — раз на кадр: ядро малює кожен
-рух, екран бере зміни один раз) блок бере `ImageChange`: плитки
-256 × 256, яких торкається брудний прямокутник (`Document::composite_tiles`
-ядра, один прохід, premultiplied RGBA — так `decodeImageFromPixels`
-бере `rgba8888`). Плитки
-йдуть до полотна дією `CanvasTilesAction`: це потік для малювання, а не
-стан екрана. `CanvasTiles` робить з них `ui.Image` і тримає стару плитку,
-доки нова не готова (показується будь-яка новіша за ту, що на екрані),
-тож мазок не мерехтить і не відстає. Полотно — два шари з
-`RepaintBoundary`: плитки й «мурашки» з ручками перемальовуються
-окремо. Межі плиток прив'язано до фізичних пікселів, збільшені пікселі
-малюються без згладжування, зменшені — з фільтром. Шахівниця прив'язана
-до екрана. «Мурашки» — контур виділення з ядра, перетворений на `Path`
-один раз на зміну виділення чи виду, зі смугастим шейдером, що
-зсувається анімацією. Масштаб 100% —
-фізичний піксель екрана на піксель зображення за будь-якого масштабу
-дисплея.
+### Canvas
 
-### Вигляд
+After each action (for pointer moves, once per frame: the core paints
+every move, the screen takes the changes once), the bloc takes an
+`ImageChange` with the 256 × 256 tiles the dirty rectangle touches. The
+core composites them in one pass as premultiplied RGBA
+(`Document::composite_tiles`), the format `decodeImageFromPixels` takes
+as `rgba8888`. The tiles reach the canvas as a `CanvasTilesAction`: a
+stream for drawing, not screen state. `CanvasTiles` turns them into
+`ui.Image`s and keeps the old tile until the new one is ready (any tile
+newer than the one on screen is shown), so a stroke neither flickers nor
+lags.
 
-Скло замість Material за замовчуванням: глибокий фон
-з двома м'якими плямами акценту, напівпрозорі панелі з hairline-межею,
-гарнітура Manrope (OFL, `assets/fonts`), шкали `Space` і `Radii`, рух
-160–220 мс. Інтерфейс стриманий і компактний: скруглення малі (6 —
-кнопки, ряди й поля, 8 — вікна й меню, 10 — діалоги; більші кроки шкали
-— лише для pill), для кнопок, рядів і смуг є щільна шкала `ControlSize`,
-усе вирівняне по сітці відступів `Space`.
+The canvas has two `RepaintBoundary` layers: the tiles, and the marching
+ants with the handles, which repaint separately. Tile edges snap to
+physical pixels; magnified pixels are drawn without smoothing and
+reduced ones with filtering. The checkerboard is fixed to the screen.
+The marching ants are the core's selection outline, turned into a `Path`
+once per change of the selection or the view and drawn with an animated
+striped shader. At 100% zoom one image pixel is one physical screen
+pixel, whatever the display scale.
 
-Розкладка — як у Paint.NET 5: угорі меню File –
-Effects, під ними рядок команд іконками (файли, буфер обміну, Crop,
-Deselect, Undo / Redo, сітка, лінійки); поруч — смуга вкладок відкритих
-зображень на дві висоти (мініатюра, під нею назва, що скорочується «…»;
-ширину вкладки задає мініатюра; крапка незбереженого, хрестик на куті
-мініатюри); у правому куті, в один ряд із пунктами меню й тієї ж висоти,
-— перемикачі вікон Tools / History / Layers / Colors, налаштування (тема)
-і довідка: меню Window і Help, як у Paint.NET 5, стали цими кнопками.
-Нижче — рядок параметрів інструмента: групи через риску, кілька значень,
-які розрізняє малюнок, — ряд іконок, багато чи неочевидні — назва у
-випадному списку (таблиця — `behaviour.md`, «У програмі на Flutter»;
-гліфи параметрів — `SettingIconWidget`). Перший елемент кожного рядка
-стоїть на одній вертикалі; кнопки без pill. Полотно — з лінійками згори й
-зліва (позначка вказівника; у куті — одиниця, «пкс»; View > Лінійки).
-Вікна: Tools зліва вгорі (дві колонки), Colors зліва внизу (More: колесо,
-поруч RGB, hex, HSV і непрозорість, під ними палітра; Less: колесо, під
-ним непрозорість, hex і палітра два ряди по вісім, не ширше за колесо),
-History справа вгорі, Layers справа внизу. Межа панелей — рівна hairline
-з усіх боків. Іконки інструментів кольорові за родом, як у Paint.NET
-(`IconHues` у темі, свої відтінки для темної й світлої): виділення й
-переміщення — сині, іскра палички й олівець — жовті, рука, фарба пензля й
-штамп — помаранчеві, гумка й перефарбування — червоні, піпетка — блакитна,
-заливка — зелена, градієнт, лінія й фігури — фіолетові. Рядок стану: підказка інструмента, розмір
-виділення й зображення, координати, одиниці, масштаб із повзунком.
+### Look
 
-Темна тема — типова, світла й системна — у налаштуваннях і View > Тема.
-Плаваючі вікна — непрозоре скло з тінню, без розмиття (над полотном, що
-постійно перемальовується, воно коштувало б кадрів); напівпрозорі, коли
-вказівник над полотном. Іконки інструментів власні (векторні гліфи в
-`ToolIconWidget`).
+The look is glass instead of default Material: a deep background with
+two soft blooms of the accent color, translucent panels with hairline
+borders, the Manrope typeface (OFL, `assets/fonts`), the `Space` and
+`Radii` scales, and motion of 160–220 ms. The interface is restrained
+and compact: radii are small (6 for buttons, rows and fields, 8 for
+windows and menus, 10 for dialogs; the larger steps are only for pills),
+the dense `ControlSize` scale sizes buttons, rows and bars, and
+everything aligns to the `Space` grid.
 
-Між запусками пам'ятаються інструмент, налаштування панелі, якість JPEG,
-нещодавні файли, видимість і місце вікон, режим Colors (More / Less),
-лінійки, тема і остання тека. Перетягування (файли у вікно, вкладки, шари,
-зразки палітри, вікна за заголовок) — `behaviour.md`, «У програмі на
-Flutter».
+The layout follows Paint.NET 5. The menus File to Effects are at the
+top, with a row of command icons below them (files, clipboard, Crop,
+Deselect, Undo and Redo, pixel grid, rulers). Next to them is the strip
+of image tabs, two rows high: a thumbnail with the name below it,
+shortened with "…", a dot for unsaved changes and a close button on the
+thumbnail's corner. The top right corner holds the toggles of the Tools,
+History, Layers and Colors windows, the settings and help; they replace
+Paint.NET 5's Window and Help menus. Below is the tool bar: groups
+separated by a bar, a row of icons where a picture tells the values
+apart, and a drop-down list with names where there are many values or
+they are not obvious (`SettingIconWidget` draws the setting glyphs). The
+canvas has rulers along the top and left edges that mark the pointer.
 
-## Що ще не зроблено
+The floating windows are Tools (top left, two columns), Colors (bottom
+left), History (top right) and Layers (bottom right). Colors has two
+modes: More shows the wheel with RGB, hex, HSV and opacity beside it and
+the palette below; Less shows the wheel with opacity, hex and a palette
+of two rows of eight below it, no wider than the wheel. Floating windows
+are opaque glass with a shadow and no blur (a blur over a canvas that
+repaints all the time would cost frames); they turn translucent while
+the pointer is over the canvas. Tool icons are vector glyphs
+(`ToolIconWidget`) colored by kind, as in Paint.NET, with separate hues
+for the dark and light themes (`IconHues`). The status bar shows the
+tool hint, the selection and image sizes, the pointer position, the
+units and the zoom with a slider.
 
-Перелік ядра — розділ «Відкрите» в `behaviour.md`: поворот і масштаб
-контуру виділення, одиниці й DPI, друк. В оболонці: стрілки в неінструментах
-переміщення не рухають курсор, Ctrl+PageUp / PageDown і Ctrl+F4 для
-вкладок, файл палітри.
+### Theme, accent and language
+
+The settings menu (the gear in the top right corner) has three
+submenus:
+
+- **Theme**: dark (the default), light, or the system's. View > Theme
+  offers the same choice.
+- **Accent color**: blue (the default), green, amber, purple, red, gray,
+  or a custom color from the color wheel. `AppTheme` derives the accent
+  roles from it: the primary color, `accentSoft` for selected rows and
+  buttons, the glow, sliders and the background blooms. `AccentPalette`
+  moves the accent toward white on the dark theme and toward black on
+  the light one until it reaches a 3:1 contrast against the surface;
+  accent-colored text reaches 4.5:1, and text on the accent is black or
+  white, whichever reads better. Any custom color therefore stays
+  usable; `accent_palette_test.dart` checks the presets and extreme
+  custom colors.
+- **Language**: the system's language, or one of the 25 interface
+  languages listed by their own names (`AppLanguages`). A system
+  language the program lacks falls back to English.
+
+The program remembers between launches the tool, the tool bar settings,
+the JPEG quality, recent files, the visibility and position of the
+windows, the Colors mode, the rulers, the theme, the accent, the
+language and the last folder. Drag and drop (files onto the window, tabs,
+layers, palette swatches, windows by their title) is described in
+[behaviour.md](behaviour.md).
+
+## Not done yet
+
+The core's open items are listed under "Open items" in
+[behaviour.md](behaviour.md): rotating and scaling the selection outline,
+units and DPI, printing. In the program: the arrow keys do not move the
+cursor outside the move tools; Ctrl+PageUp, Ctrl+PageDown and Ctrl+F4 do
+not switch or close tabs; palette files cannot be loaded; new layers get
+the core's English default names.

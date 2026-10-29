@@ -1,28 +1,31 @@
-# Сторонні залежності
+# Third-party libraries
 
-Бібліотеки, які входять у зібрану програму, з їхніми ліцензіями. Інструменти
-лише для розробки (тести, лінтери, melos, кодогенератори) сюди не входять.
-Усі ліцензії нижче — MIT, BSD, Apache 2.0, Zlib, Unicode, 0BSD чи
-Unlicense — дозвільні й сумісні з GNU GPL v3, під якою поширюється
-Paintbox. Де крейт пропонує вибір («A OR B»), Paintbox користується
-сумісним із GPL v3 варіантом (MIT або Apache 2.0). Портовані алгоритми,
-шрифт і Cargokit — у [NOTICE.md](../NOTICE.md).
+These are the libraries built into the program, with their licenses.
+Tools used only for development (tests, linters, melos, code generators)
+are not listed. Every license below (MIT, BSD, Apache 2.0, Zlib,
+Unicode, 0BSD or Unlicense) is permissive and compatible with the GNU
+GPL version 3, under which Paintbox is distributed. Where a crate offers
+a choice ("A OR B"), Paintbox uses the GPL-compatible option (MIT or
+Apache 2.0). The ported algorithms, the font and Cargokit are covered in
+[NOTICE.md](../NOTICE.md).
 
-Перелік зібрано так (оновлювати після зміни залежностей):
+The lists come from these commands; regenerate them after changing
+dependencies:
 
 ```
 cargo tree -p paintbox_bridge -e normal --prefix none -f "{p}|{l}" --target all
 cd app && flutter pub deps --json
 ```
 
-Для пакетів Dart ліцензію визначено за файлом `LICENSE` пакета в кеші
-pub. Flutter SDK (`flutter`, `flutter_localizations`, `sky_engine`) —
-BSD-3-Clause; рушій Flutter містить сторонній код під власними
-ліцензіями, які Flutter збирає у вбудований перелік ліцензій програми.
+The license of each Dart package is taken from the package's `LICENSE`
+file in the pub cache. The Flutter SDK (`flutter`,
+`flutter_localizations`, `sky_engine`) is BSD-3-Clause; the Flutter
+engine contains third-party code under its own licenses, which Flutter
+collects into the program's built-in license list.
 
-## Rust (ядро й міст)
+## Rust (core and bridge)
 
-| Крейт | Версія | Ліцензія |
+| Crate | Version | License |
 |---|---|---|
 | ab_glyph | 0.2.32 | Apache-2.0 |
 | ab_glyph_rasterizer | 0.1.10 | Apache-2.0 |
@@ -139,9 +142,9 @@ BSD-3-Clause; рушій Flutter містить сторонній код під
 | zune-core | 0.5.3 | MIT OR Apache-2.0 OR Zlib |
 | zune-jpeg | 0.5.15 | MIT OR Apache-2.0 OR Zlib |
 
-## Dart і Flutter (програма)
+## Dart and Flutter (program)
 
-| Пакет | Версія | Ліцензія |
+| Package | Version | License |
 |---|---|---|
 | args | 2.7.0 | BSD-3-Clause |
 | async | 2.13.1 | BSD-3-Clause |
