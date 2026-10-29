@@ -1,0 +1,30 @@
+# Rust
+/target/
+
+# Flutter and Dart (the platform folders keep their own .gitignore too)
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+**/doc/api/
+coverage/
+pubspec_overrides.yaml
+**/ephemeral/
+*.iml
+.idea/
+
+# Packages made by tools/package-windows.ps1 and packaging/
+/dist/
+
+# Screenshots the program writes outside docs/images
+/screenshots/
+
+# Local assistant settings
+
+# OS and editors
+.DS_Store
+Thumbs.db
+*.swp
+*.log

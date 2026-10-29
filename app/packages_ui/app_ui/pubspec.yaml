@@ -1,0 +1,26 @@
+name: app_ui
+description: Presentation base - the theme and tokens, glass surfaces, toasts, dialogs, ActionListener, gen-l10n (uk, en).
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: '>=3.47.0'
+
+dependencies:
+  core: any
+  equatable: ^2.0.7
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  generate: true

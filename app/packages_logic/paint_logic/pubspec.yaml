@@ -1,0 +1,25 @@
+name: paint_logic
+description: Logic - open images and the editing session over the bridge, recent files, settings, the clipboard and file dialogs.
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: '>=3.47.0'
+
+dependencies:
+  core: any
+  equatable: ^2.0.7
+  file_selector: ^1.1.0
+  flutter:
+    sdk: flutter
+  paint_bridge: any
+  pasteboard: ^0.5.0
+  path: ^1.9.0
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter

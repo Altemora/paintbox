@@ -1,0 +1,15 @@
+name: core
+description: Tool base - failures, the log, the injector, the event bus. No Flutter, no features.
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  get_it: ^9.2.1
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  test: ^1.25.0

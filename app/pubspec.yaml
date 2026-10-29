@@ -1,0 +1,69 @@
+name: paintbox
+description: "Paintbox: an image editor with layers over the paintbox_core Rust engine."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.0
+  flutter: '>=3.47.0'
+
+workspace:
+  - packages_tools/core
+  - packages_tools/paint_bridge
+  - packages_logic/paint_logic
+  - packages_ui/app_ui
+  - packages_ui/editor_ui
+
+dependencies:
+  app_ui: any
+  core: any
+  editor_ui: any
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^9.1.1
+  flutter_localizations:
+    sdk: flutter
+  paint_bridge: any
+  paint_logic: any
+  path: ^1.9.0
+  path_provider: ^2.1.5
+  window_manager: ^0.5.1
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+  melos: ^7.5.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf
+  assets:
+    - assets/fonts/OFL-Manrope.txt
+
+melos:
+  name: paintbox
+  scripts:
+    analyze:
+      exec: dart analyze --fatal-infos .
+      description: Analyze all packages.
+    format:
+      run: dart format lib packages_tools/core packages_tools/paint_bridge/lib packages_logic packages_ui
+      description: Format all packages.
+    format:check:
+      run: dart format --output=none --set-exit-if-changed lib packages_tools/core packages_tools/paint_bridge/lib packages_logic packages_ui
+      description: Verify formatting.
+    gen:l10n:
+      run: melos exec --scope=app_ui -- "flutter gen-l10n"
+      description: Generate localizations in app_ui.
+    gen:bridge:
+      run: melos exec --scope=paint_bridge -- "flutter_rust_bridge_codegen generate"
+      description: Regenerate the Dart and Rust glue of the bridge after its Rust api changed.
+    test:
+      exec: flutter test
+      packageFilters:
+        dirExists: test
+      description: Run tests in packages that have them (they load the bridge built by cargo, see docs).
